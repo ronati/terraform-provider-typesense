@@ -6,10 +6,14 @@ import (
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/listdefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/listplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -38,6 +42,8 @@ type CollectionResourceModel struct {
 	DefaultSortingField types.String                   `tfsdk:"default_sorting_field"`
 	Fields              []CollectionResourceFieldModel `tfsdk:"fields"`
 	EnableNestedFields  types.Bool                     `tfsdk:"enable_nested_fields"`
+	SymbolsToIndex      []types.String                 `tfsdk:"symbols_to_index"`
+	TokenSeparators     []types.String                 `tfsdk:"token_separators"`
 }
 
 type CollectionResourceFieldModel struct {
@@ -45,6 +51,8 @@ type CollectionResourceFieldModel struct {
 	Facet    types.Bool   `tfsdk:"facet"`
 	Index    types.Bool   `tfsdk:"index"`
 	Optional types.Bool   `tfsdk:"optional"`
+	Sort     types.Bool   `tfsdk:"sort"`
+	Infix    types.Bool   `tfsdk:"infix"`
 	Type     types.String `tfsdk:"type"`
 }
 
@@ -84,6 +92,26 @@ func (r *CollectionResource) Schema(ctx context.Context, req resource.SchemaRequ
 				MarkdownDescription: "Enable nested fields, must be enabled to use object/object[] types",
 				Default:             booldefault.StaticBool(false),
 			},
+			"symbols_to_index": schema.ListAttribute{
+				ElementType:         types.StringType,
+				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "List of symbols to index",
+				Default:             listdefault.StaticValue(types.ListValueMust(types.StringType, []attr.Value{})),
+				PlanModifiers: []planmodifier.List{
+					listplanmodifier.RequiresReplace(),
+				},
+			},
+			"token_separators": schema.ListAttribute{
+				ElementType:         types.StringType,
+				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "List of token separators",
+				Default:             listdefault.StaticValue(types.ListValueMust(types.StringType, []attr.Value{})),
+				PlanModifiers: []planmodifier.List{
+					listplanmodifier.RequiresReplace(),
+				},
+			},
 		},
 		Blocks: map[string]schema.Block{
 			"fields": schema.SetNestedBlock{
@@ -94,18 +122,43 @@ func (r *CollectionResource) Schema(ctx context.Context, req resource.SchemaRequ
 						},
 						"facet": schema.BoolAttribute{
 							Optional: true,
+							Computed: true,
+							Description: "Facet field",
+							PlanModifiers: []planmodifier.Bool{
+								boolplanmodifier.UseStateForUnknown(),
+							},
 						},
 						"index": schema.BoolAttribute{
 							Optional:    true,
 							Computed:    true,
-							Default:     booldefault.StaticBool(true),
 							Description: "Index field",
+							PlanModifiers: []planmodifier.Bool{
+								boolplanmodifier.UseStateForUnknown(),
+							},
 						},
 						"optional": schema.BoolAttribute{
 							Optional:    true,
 							Computed:    true,
-							Default:     booldefault.StaticBool(true),
 							Description: "Optional field",
+							PlanModifiers: []planmodifier.Bool{
+								boolplanmodifier.UseStateForUnknown(),
+							},
+						},
+						"sort": schema.BoolAttribute{
+							Optional:    true,
+							Computed:    true,
+							Description: "Sort field",
+							PlanModifiers: []planmodifier.Bool{
+								boolplanmodifier.UseStateForUnknown(),
+							},
+						},
+						"infix": schema.BoolAttribute{
+							Optional:    true,
+							Computed:    true,
+							Description: "Infix field",
+							PlanModifiers: []planmodifier.Bool{
+								boolplanmodifier.UseStateForUnknown(),
+							},
 						},
 						"type": schema.StringAttribute{
 							Required:    true,
@@ -173,6 +226,18 @@ func (r *CollectionResource) Create(ctx context.Context, req resource.CreateRequ
 	schema.DefaultSortingField = data.DefaultSortingField.ValueStringPointer()
 	schema.EnableNestedFields = data.EnableNestedFields.ValueBoolPointer()
 
+	symbolsToIndex := []string{}
+	for _, symbol := range data.SymbolsToIndex {
+		symbolsToIndex = append(symbolsToIndex, symbol.ValueString())
+	}
+	schema.SymbolsToIndex = &symbolsToIndex
+
+	tokensSeparators := []string{}
+	for _, token := range data.TokenSeparators {
+		tokensSeparators = append(tokensSeparators, token.ValueString())
+	}
+	schema.TokenSeparators = &tokensSeparators
+
 	fields := []api.Field{}
 
 	for _, field := range data.Fields {
@@ -196,6 +261,20 @@ func (r *CollectionResource) Create(ctx context.Context, req resource.CreateRequ
 
 	data.EnableNestedFields = types.BoolPointerValue(collection.EnableNestedFields)
 	data.Fields = flattenCollectionFields(collection.Fields)
+
+	data.SymbolsToIndex = []types.String{}
+	if collection.SymbolsToIndex != nil {
+		for _, symbol := range *collection.SymbolsToIndex {
+			data.SymbolsToIndex = append(data.SymbolsToIndex, types.StringValue(symbol))
+		}
+	}
+	
+	data.TokenSeparators = []types.String{}
+	if collection.TokenSeparators != nil {
+		for _, token := range *collection.TokenSeparators {
+			data.TokenSeparators = append(data.TokenSeparators, types.StringValue(token))
+		}
+	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
@@ -235,6 +314,24 @@ func (r *CollectionResource) Read(ctx context.Context, req resource.ReadRequest,
 
 	data.EnableNestedFields = types.BoolPointerValue(collection.EnableNestedFields)
 	data.Fields = flattenCollectionFields(collection.Fields)
+	
+	if collection.SymbolsToIndex != nil {
+		data.SymbolsToIndex = []types.String{}
+		if collection.SymbolsToIndex != nil {
+			for _, symbol := range *collection.SymbolsToIndex {
+				data.SymbolsToIndex = append(data.SymbolsToIndex, types.StringValue(symbol))
+			}
+		}
+	}
+
+	if collection.TokenSeparators != nil {
+		data.TokenSeparators = []types.String{}
+		if collection.TokenSeparators != nil {
+			for _, token := range *collection.TokenSeparators {
+				data.TokenSeparators = append(data.TokenSeparators, types.StringValue(token))
+			}
+		}
+	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
@@ -249,6 +346,8 @@ func flattenCollectionFields(fields []api.Field) []CollectionResourceFieldModel 
 			field.Facet = types.BoolPointerValue(fieldResponse.Facet)
 			field.Index = types.BoolPointerValue(fieldResponse.Index)
 			field.Optional = types.BoolPointerValue(fieldResponse.Optional)
+			field.Sort = types.BoolPointerValue(fieldResponse.Sort)
+			field.Infix = types.BoolPointerValue(fieldResponse.Infix)
 			field.Type = types.StringValue(fieldResponse.Type)
 			fis[i] = field
 		}
@@ -367,6 +466,8 @@ func filedModelToApiField(field CollectionResourceFieldModel) api.Field {
 		Facet:    field.Facet.ValueBoolPointer(),
 		Index:    field.Index.ValueBoolPointer(),
 		Optional: field.Optional.ValueBoolPointer(),
+		Sort:     field.Sort.ValueBoolPointer(),
+		Infix:    field.Infix.ValueBoolPointer(),
 		Type:     field.Type.ValueString(),
 	}
 }

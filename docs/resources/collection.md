@@ -46,6 +46,8 @@ resource "typesense_collection" "my_collection" {
 - `default_sorting_field` (String) Default sorting field
 - `enable_nested_fields` (Boolean) Enable nested fields, must be enabled to use object/object[] types
 - `fields` (Block Set) (see [below for nested schema](#nestedblock--fields))
+- `symbols_to_index` (List of String) List of symbols to index
+- `token_separators` (List of String) List of token separators
 
 ### Read-Only
 
@@ -61,9 +63,11 @@ Required:
 
 Optional:
 
-- `facet` (Boolean)
+- `facet` (Boolean) Facet field
 - `index` (Boolean) Index field
+- `infix` (Boolean) Infix field
 - `optional` (Boolean) Optional field
+- `sort` (Boolean) Sort field
 
 ## Import
 
