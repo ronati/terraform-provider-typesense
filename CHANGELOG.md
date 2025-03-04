@@ -1,3 +1,15 @@
+# [1.8.0](https://github.com/ronati/terraform-provider-typesense/compare/v1.7.1...v1.8.0) (2025-03-04)
+
+
+### Bug Fixes
+
+* **ci:** intall terraform ([59ab462](https://github.com/ronati/terraform-provider-typesense/commit/59ab4623d201c9a193e599e210d413aba377b4c6))
+
+
+### Features
+
+* **collections:** Supporting more schema parameters and field parameters ([#2](https://github.com/ronati/terraform-provider-typesense/issues/2)) ([f95c25a](https://github.com/ronati/terraform-provider-typesense/commit/f95c25aad2cf33152ad090a17e90b3d39cb7e57b))
+
 ## [1.7.1](https://github.com/ronati/terraform-provider-typesense/compare/v1.7.0...v1.7.1) (2024-09-10)
 
 
