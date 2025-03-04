@@ -35,6 +35,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "22.x"
+      - name: Install terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.11.0"  
       # TODO: Run Go/Terraform tests to make sure we publish a working version
       - name: Build app
         run: make build
