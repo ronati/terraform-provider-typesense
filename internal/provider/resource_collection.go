@@ -121,8 +121,8 @@ func (r *CollectionResource) Schema(ctx context.Context, req resource.SchemaRequ
 							Required: true,
 						},
 						"facet": schema.BoolAttribute{
-							Optional: true,
-							Computed: true,
+							Optional:    true,
+							Computed:    true,
 							Description: "Facet field",
 							PlanModifiers: []planmodifier.Bool{
 								boolplanmodifier.UseStateForUnknown(),
@@ -268,7 +268,7 @@ func (r *CollectionResource) Create(ctx context.Context, req resource.CreateRequ
 			data.SymbolsToIndex = append(data.SymbolsToIndex, types.StringValue(symbol))
 		}
 	}
-	
+
 	data.TokenSeparators = []types.String{}
 	if collection.TokenSeparators != nil {
 		for _, token := range *collection.TokenSeparators {
@@ -314,7 +314,7 @@ func (r *CollectionResource) Read(ctx context.Context, req resource.ReadRequest,
 
 	data.EnableNestedFields = types.BoolPointerValue(collection.EnableNestedFields)
 	data.Fields = flattenCollectionFields(collection.Fields)
-	
+
 	if collection.SymbolsToIndex != nil {
 		data.SymbolsToIndex = []types.String{}
 		if collection.SymbolsToIndex != nil {
