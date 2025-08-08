@@ -66,12 +66,18 @@ Optional:
 - `facet` (Boolean) Facet field
 - `index` (Boolean) Index field
 - `infix` (Boolean) Infix field
+- `locale` (String) Locale for language-specific tokenization
 - `optional` (Boolean) Optional field
 - `sort` (Boolean) Sort field
+- `stem` (Boolean) Enable stemming on field
+- `stem_dictionary` (String) Custom stemming dictionary
+- `store` (Boolean) Store field value on disk
 
 ## Import
 
 Import is supported using the following syntax:
+
+The [`terraform import` command](https://developer.hashicorp.com/terraform/cli/commands/import) can be used, for example:
 
 ```shell
 terraform import typesense_collection.my_collection my-collection

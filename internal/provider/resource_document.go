@@ -14,7 +14,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
-	"github.com/typesense/typesense-go/typesense"
+	"github.com/typesense/typesense-go/v3/typesense"
+	"github.com/typesense/typesense-go/v3/typesense/api"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces.
@@ -114,7 +115,7 @@ func (r *DocumentResource) Create(ctx context.Context, req resource.CreateReques
 
 	document["id"] = data.Name.ValueString()
 
-	result, err := r.client.Collection(data.CollectionName.ValueString()).Documents().Create(ctx, document)
+	result, err := r.client.Collection(data.CollectionName.ValueString()).Documents().Create(ctx, document, &api.DocumentIndexParameters{})
 
 	if err != nil {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to create document, got error: %s", err))
@@ -123,14 +124,8 @@ func (r *DocumentResource) Create(ctx context.Context, req resource.CreateReques
 
 	data.Id = types.StringValue(createId(data.CollectionName.ValueString(), result["id"].(string)))
 
-	delete(result, "id")
-
-	data.Document, err = parseMapToJsonString(result)
-
-	if err != nil {
-		resp.Diagnostics.AddError("JSON format error", fmt.Sprintf("Unable to parse json response, got error: %s", err))
-		return
-	}
+	// In v3 API, creation only returns the ID, so we keep the original document content
+	// The document content is already set in data.Document from the original request
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
@@ -204,7 +199,7 @@ func (r *DocumentResource) Update(ctx context.Context, req resource.UpdateReques
 
 	document["id"] = id
 
-	result, err := r.client.Collection(collectionName).Document(id).Update(ctx, document)
+	result, err := r.client.Collection(collectionName).Document(id).Update(ctx, document, &api.DocumentIndexParameters{})
 	_ = result // result is empty
 
 	if err != nil {

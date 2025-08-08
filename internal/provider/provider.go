@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
-	"github.com/typesense/typesense-go/typesense"
+	"github.com/typesense/typesense-go/v3/typesense"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -140,6 +140,7 @@ func (p *TypesenseProvider) Resources(_ context.Context) []func() resource.Resou
 		NewSynonymResource,
 		NewDocumentResource,
 		NewAliasResource,
+		NewApiKeyResource,
 	}
 }
 
