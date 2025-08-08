@@ -1,3 +1,13 @@
+# [2.0.0](https://github.com/ronati/terraform-provider-typesense/compare/v1.8.0...v2.0.0) (2025-08-08)
+
+
+* Merge pull request #69 from ronati/add-release ([119e4c6](https://github.com/ronati/terraform-provider-typesense/commit/119e4c6ccb6eab272932ec8234e40af41e09c715)), closes [#69](https://github.com/ronati/terraform-provider-typesense/issues/69)
+
+
+### BREAKING CHANGES
+
+* Updated typesense supported version
+
 # [1.8.0](https://github.com/ronati/terraform-provider-typesense/compare/v1.7.1...v1.8.0) (2025-03-04)
 
 

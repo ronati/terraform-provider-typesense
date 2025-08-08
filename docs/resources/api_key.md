@@ -57,8 +57,6 @@ output "api_key_id" {
 
 Import is supported using the following syntax:
 
-The [`terraform import` command](https://developer.hashicorp.com/terraform/cli/commands/import) can be used, for example:
-
 ```shell
 #!/bin/bash
 # Import an existing API key by its ID
