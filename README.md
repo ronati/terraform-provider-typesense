@@ -7,7 +7,7 @@
 
 ## Support
 
-- Supports v1.0.0 version of Typesense.
+- Supports v28.0+ version of Typesense.
 
 ## Requirements
 
