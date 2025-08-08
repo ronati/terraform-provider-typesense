@@ -66,8 +66,12 @@ Optional:
 - `facet` (Boolean) Facet field
 - `index` (Boolean) Index field
 - `infix` (Boolean) Infix field
+- `locale` (String) Locale for language-specific tokenization
 - `optional` (Boolean) Optional field
 - `sort` (Boolean) Sort field
+- `stem` (Boolean) Enable stemming on field
+- `stem_dictionary` (String) Custom stemming dictionary
+- `store` (Boolean) Store field value on disk
 
 ## Import
 

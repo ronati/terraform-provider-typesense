@@ -20,8 +20,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
-	"github.com/typesense/typesense-go/typesense"
-	"github.com/typesense/typesense-go/typesense/api"
+	"github.com/typesense/typesense-go/v3/typesense"
+	"github.com/typesense/typesense-go/v3/typesense/api"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces.
@@ -47,13 +47,17 @@ type CollectionResourceModel struct {
 }
 
 type CollectionResourceFieldModel struct {
-	Name     types.String `tfsdk:"name"`
-	Facet    types.Bool   `tfsdk:"facet"`
-	Index    types.Bool   `tfsdk:"index"`
-	Optional types.Bool   `tfsdk:"optional"`
-	Sort     types.Bool   `tfsdk:"sort"`
-	Infix    types.Bool   `tfsdk:"infix"`
-	Type     types.String `tfsdk:"type"`
+	Name           types.String `tfsdk:"name"`
+	Facet          types.Bool   `tfsdk:"facet"`
+	Index          types.Bool   `tfsdk:"index"`
+	Optional       types.Bool   `tfsdk:"optional"`
+	Sort           types.Bool   `tfsdk:"sort"`
+	Infix          types.Bool   `tfsdk:"infix"`
+	Type           types.String `tfsdk:"type"`
+	Stem           types.Bool   `tfsdk:"stem"`
+	StemDictionary types.String `tfsdk:"stem_dictionary"`
+	Locale         types.String `tfsdk:"locale"`
+	Store          types.Bool   `tfsdk:"store"`
 }
 
 func (r *CollectionResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -182,6 +186,38 @@ func (r *CollectionResource) Schema(ctx context.Context, req resource.SchemaRequ
 									"string*",
 									"auto",
 								),
+							},
+						},
+						"stem": schema.BoolAttribute{
+							Optional:    true,
+							Computed:    true,
+							Description: "Enable stemming on field",
+							PlanModifiers: []planmodifier.Bool{
+								boolplanmodifier.UseStateForUnknown(),
+							},
+						},
+						"stem_dictionary": schema.StringAttribute{
+							Optional:    true,
+							Computed:    true,
+							Description: "Custom stemming dictionary",
+							PlanModifiers: []planmodifier.String{
+								stringplanmodifier.UseStateForUnknown(),
+							},
+						},
+						"locale": schema.StringAttribute{
+							Optional:    true,
+							Computed:    true,
+							Description: "Locale for language-specific tokenization",
+							PlanModifiers: []planmodifier.String{
+								stringplanmodifier.UseStateForUnknown(),
+							},
+						},
+						"store": schema.BoolAttribute{
+							Optional:    true,
+							Computed:    true,
+							Description: "Store field value on disk",
+							PlanModifiers: []planmodifier.Bool{
+								boolplanmodifier.UseStateForUnknown(),
 							},
 						},
 					},
@@ -349,6 +385,10 @@ func flattenCollectionFields(fields []api.Field) []CollectionResourceFieldModel 
 			field.Sort = types.BoolPointerValue(fieldResponse.Sort)
 			field.Infix = types.BoolPointerValue(fieldResponse.Infix)
 			field.Type = types.StringValue(fieldResponse.Type)
+			field.Stem = types.BoolPointerValue(fieldResponse.Stem)
+			field.StemDictionary = types.StringPointerValue(fieldResponse.StemDictionary)
+			field.Locale = types.StringPointerValue(fieldResponse.Locale)
+			field.Store = types.BoolPointerValue(fieldResponse.Store)
 			fis[i] = field
 		}
 
@@ -462,12 +502,16 @@ func (r *CollectionResource) ImportState(ctx context.Context, req resource.Impor
 
 func filedModelToApiField(field CollectionResourceFieldModel) api.Field {
 	return api.Field{
-		Name:     field.Name.ValueString(),
-		Facet:    field.Facet.ValueBoolPointer(),
-		Index:    field.Index.ValueBoolPointer(),
-		Optional: field.Optional.ValueBoolPointer(),
-		Sort:     field.Sort.ValueBoolPointer(),
-		Infix:    field.Infix.ValueBoolPointer(),
-		Type:     field.Type.ValueString(),
+		Name:           field.Name.ValueString(),
+		Facet:          field.Facet.ValueBoolPointer(),
+		Index:          field.Index.ValueBoolPointer(),
+		Optional:       field.Optional.ValueBoolPointer(),
+		Sort:           field.Sort.ValueBoolPointer(),
+		Infix:          field.Infix.ValueBoolPointer(),
+		Type:           field.Type.ValueString(),
+		Stem:           field.Stem.ValueBoolPointer(),
+		StemDictionary: field.StemDictionary.ValueStringPointer(),
+		Locale:         field.Locale.ValueStringPointer(),
+		Store:          field.Store.ValueBoolPointer(),
 	}
 }
