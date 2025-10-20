@@ -88,9 +88,10 @@ func (r *ApiKeyResource) Schema(ctx context.Context, req resource.SchemaRequest,
 				},
 			},
 			"value": schema.StringAttribute{
-				MarkdownDescription: "The actual API key value (only available after creation)",
+	            MarkdownDescription: "The actual API key value. If not provided, Typesense will auto-generate one.",
+				Optional:            true,
 				Computed:            true,
-				Sensitive:           true,
+				Sensitive:           true,				
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
@@ -147,6 +148,11 @@ func (r *ApiKeyResource) Create(ctx context.Context, req resource.CreateRequest,
 		Description: data.Description.ValueString(),
 		Actions:     actions,
 		Collections: collections,
+	}
+
+	if !data.Value.IsNull() && data.Value.ValueString() != "" {
+		value := data.Value.ValueString()
+		keySchema.Value = &value
 	}
 
 	if !data.ExpiresAt.IsNull() {
