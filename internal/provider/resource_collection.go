@@ -11,10 +11,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/listdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/listplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -128,41 +128,31 @@ func (r *CollectionResource) Schema(ctx context.Context, req resource.SchemaRequ
 							Optional:    true,
 							Computed:    true,
 							Description: "Facet field",
-							PlanModifiers: []planmodifier.Bool{
-								boolplanmodifier.UseStateForUnknown(),
-							},
+							Default:     booldefault.StaticBool(false),
 						},
 						"index": schema.BoolAttribute{
 							Optional:    true,
 							Computed:    true,
 							Description: "Index field",
-							PlanModifiers: []planmodifier.Bool{
-								boolplanmodifier.UseStateForUnknown(),
-							},
+							Default:     booldefault.StaticBool(true),
 						},
 						"optional": schema.BoolAttribute{
 							Optional:    true,
 							Computed:    true,
 							Description: "Optional field",
-							PlanModifiers: []planmodifier.Bool{
-								boolplanmodifier.UseStateForUnknown(),
-							},
+							Default:     booldefault.StaticBool(false),
 						},
 						"sort": schema.BoolAttribute{
 							Optional:    true,
 							Computed:    true,
 							Description: "Sort field",
-							PlanModifiers: []planmodifier.Bool{
-								boolplanmodifier.UseStateForUnknown(),
-							},
+							Default:     booldefault.StaticBool(false),
 						},
 						"infix": schema.BoolAttribute{
 							Optional:    true,
 							Computed:    true,
 							Description: "Infix field",
-							PlanModifiers: []planmodifier.Bool{
-								boolplanmodifier.UseStateForUnknown(),
-							},
+							Default:     booldefault.StaticBool(false),
 						},
 						"type": schema.StringAttribute{
 							Required:    true,
@@ -192,33 +182,25 @@ func (r *CollectionResource) Schema(ctx context.Context, req resource.SchemaRequ
 							Optional:    true,
 							Computed:    true,
 							Description: "Enable stemming on field",
-							PlanModifiers: []planmodifier.Bool{
-								boolplanmodifier.UseStateForUnknown(),
-							},
+							Default:     booldefault.StaticBool(false),
 						},
 						"stem_dictionary": schema.StringAttribute{
 							Optional:    true,
 							Computed:    true,
 							Description: "Custom stemming dictionary",
-							PlanModifiers: []planmodifier.String{
-								stringplanmodifier.UseStateForUnknown(),
-							},
+							Default:     stringdefault.StaticString(""),
 						},
 						"locale": schema.StringAttribute{
 							Optional:    true,
 							Computed:    true,
 							Description: "Locale for language-specific tokenization",
-							PlanModifiers: []planmodifier.String{
-								stringplanmodifier.UseStateForUnknown(),
-							},
+							Default:     stringdefault.StaticString(""),
 						},
 						"store": schema.BoolAttribute{
 							Optional:    true,
 							Computed:    true,
 							Description: "Store field value on disk",
-							PlanModifiers: []planmodifier.Bool{
-								boolplanmodifier.UseStateForUnknown(),
-							},
+							Default:     booldefault.StaticBool(true),
 						},
 					},
 				},
