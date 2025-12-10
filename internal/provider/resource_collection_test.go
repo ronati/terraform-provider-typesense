@@ -114,6 +114,57 @@ func TestAccCollectionResource_WithArrayFields(t *testing.T) {
 	})
 }
 
+func TestAccCollectionResource_FieldDefaults(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCollectionResourceConfigMinimalFields("test_collection_defaults"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("typesense_collection.test", "name", "test_collection_defaults"),
+					resource.TestCheckResourceAttr("typesense_collection.test", "fields.#", "2"),
+					resource.TestCheckResourceAttrSet("typesense_collection.test", "id"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccCollectionResource_FieldDefaultsExplicit(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCollectionResourceConfigExplicitFieldDefaults("test_collection_explicit"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("typesense_collection.test", "name", "test_collection_explicit"),
+					resource.TestCheckResourceAttr("typesense_collection.test", "fields.#", "2"),
+					resource.TestCheckResourceAttrSet("typesense_collection.test", "id"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccCollectionResource_FieldWithAllAttributes(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCollectionResourceConfigAllFieldAttributes("test_collection_all_attrs"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("typesense_collection.test", "name", "test_collection_all_attrs"),
+					resource.TestCheckResourceAttr("typesense_collection.test", "fields.#", "2"),
+					resource.TestCheckResourceAttrSet("typesense_collection.test", "id"),
+				),
+			},
+		},
+	})
+}
+
 func testAccCollectionResourceConfig(name string) string {
 	return fmt.Sprintf(`
 resource "typesense_collection" "test" {
@@ -263,6 +314,96 @@ resource "typesense_collection" "test" {
     name = "rating"
     type = "int32"
     sort = true
+  }
+
+  default_sorting_field = "rating"
+}
+`, name)
+}
+
+func testAccCollectionResourceConfigMinimalFields(name string) string {
+	return fmt.Sprintf(`
+resource "typesense_collection" "test" {
+  name = %[1]q
+
+  fields {
+    name = "title"
+    type = "string"
+  }
+
+  fields {
+    name = "rating"
+    type = "int32"
+    sort = true
+  }
+
+  default_sorting_field = "rating"
+}
+`, name)
+}
+
+func testAccCollectionResourceConfigExplicitFieldDefaults(name string) string {
+	return fmt.Sprintf(`
+resource "typesense_collection" "test" {
+  name = %[1]q
+
+  fields {
+    name     = "title"
+    type     = "string"
+    facet    = false
+    index    = true
+    optional = false
+    infix    = false
+    stem     = false
+    store    = true
+    locale   = ""
+  }
+
+  fields {
+    name     = "rating"
+    type     = "int32"
+    sort     = true
+    facet    = false
+    index    = true
+    optional = false
+    infix    = false
+    stem     = false
+    store    = true
+  }
+
+  default_sorting_field = "rating"
+}
+`, name)
+}
+
+func testAccCollectionResourceConfigAllFieldAttributes(name string) string {
+	return fmt.Sprintf(`
+resource "typesense_collection" "test" {
+  name = %[1]q
+
+  fields {
+    name     = "title"
+    type     = "string"
+    facet    = true
+    index    = true
+    optional = true
+    sort     = false
+    infix    = true
+    stem     = true
+    store    = true
+    locale   = "en"
+  }
+
+  fields {
+    name     = "rating"
+    type     = "int32"
+    sort     = true
+    facet    = true
+    index    = true
+    optional = false
+    infix    = false
+    stem     = false
+    store    = true
   }
 
   default_sorting_field = "rating"
