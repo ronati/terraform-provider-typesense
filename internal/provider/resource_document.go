@@ -122,7 +122,11 @@ func (r *DocumentResource) Create(ctx context.Context, req resource.CreateReques
 		return
 	}
 
-	docId := result["id"].(string)
+	docId, ok := result["id"].(string)
+	if !ok {
+		resp.Diagnostics.AddError("Type Error", "Unable to parse document ID as string")
+		return
+	}
 	data.Id = types.StringValue(createId(data.CollectionName.ValueString(), docId))
 
 	// Read back the document to ensure consistent JSON formatting
@@ -132,7 +136,12 @@ func (r *DocumentResource) Create(ctx context.Context, req resource.CreateReques
 		return
 	}
 
-	data.Name = types.StringValue(retrievedDoc["id"].(string))
+	retrievedId, ok := retrievedDoc["id"].(string)
+	if !ok {
+		resp.Diagnostics.AddError("Type Error", "Unable to parse retrieved document ID as string")
+		return
+	}
+	data.Name = types.StringValue(retrievedId)
 	delete(retrievedDoc, "id")
 
 	data.Document, err = parseMapToJsonString(retrievedDoc)
@@ -174,7 +183,12 @@ func (r *DocumentResource) Read(ctx context.Context, req resource.ReadRequest, r
 	}
 
 	// data.Id = types.StringValue(result["id"].(string))
-	data.Name = types.StringValue(result["id"].(string))
+	resultId, ok := result["id"].(string)
+	if !ok {
+		resp.Diagnostics.AddError("Type Error", "Unable to parse document ID as string from read result")
+		return
+	}
+	data.Name = types.StringValue(resultId)
 
 	delete(result, "id")
 
@@ -218,9 +232,9 @@ func (r *DocumentResource) Update(ctx context.Context, req resource.UpdateReques
 
 	if err != nil {
 
-		//check if error contains 201 response
+		// check if error contains 201 response
 		if strings.Contains(err.Error(), "201") {
-			//ignore, sometimes typesense returns 201 code
+			// ignore, sometimes typesense returns 201 code
 		} else {
 			resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to update document, got error: %s", err))
 			return

@@ -52,6 +52,8 @@ This directory contains the CI/CD workflows for the Terraform Typesense Provider
 - Runs against Typesense v29.0 server in a Docker container
 - Executes both unit tests and acceptance tests
 - Generates code coverage report (uploaded to Codecov)
+- **Posts coverage report as PR comment** showing coverage diff
+- **Coverage status checks**: Fails PR if coverage drops or new code poorly tested
 - Validates that the provider builds successfully
 - Required environment variables:
   - `TYPESENSE_API_KEY`: API key for Typesense (set to `test-api-key` in CI)

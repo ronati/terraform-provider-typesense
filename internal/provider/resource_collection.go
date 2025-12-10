@@ -422,14 +422,14 @@ func (r *CollectionResource) Update(ctx context.Context, req resource.UpdateRequ
 	*drop = true
 
 	for _, field := range plan.Fields {
-		//item not exists, need to create
+		// item not exists, need to create
 		if _, ok := stateItems[field.Name.ValueString()]; !ok {
 			schema.Fields = append(schema.Fields, filedModelToApiField(field))
 
 			tflog.Info(ctx, "###Field will be created: "+field.Name.ValueString())
 
 		} else if stateItems[field.Name.ValueString()] != field {
-			//item was changed, need to update
+			// item was changed, need to update
 
 			schema.Fields = append(schema.Fields,
 				api.Field{
@@ -440,11 +440,11 @@ func (r *CollectionResource) Update(ctx context.Context, req resource.UpdateRequ
 			tflog.Info(ctx, "###Field will be updated: "+field.Name.ValueString())
 
 		} else {
-			//item was not changed, do nothing
+			// item was not changed, do nothing
 			tflog.Info(ctx, "###Field remaining the same: "+field.Name.ValueString())
 		}
 
-		//delete processed field from the state object
+		// delete processed field from the state object
 		delete(stateItems, field.Name.ValueString())
 	}
 

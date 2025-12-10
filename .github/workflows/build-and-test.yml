@@ -5,7 +5,7 @@ on:
 
 permissions:
   contents: read # for checkout
-  pull-requests: read # for commit validation
+  pull-requests: write # for commit validation and codecov comments
 
 jobs:
   # Validate commit messages follow conventional commits
