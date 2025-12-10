@@ -1,1 +1,0 @@
-terraform import typesense_collection_alias.my_alias my-alias

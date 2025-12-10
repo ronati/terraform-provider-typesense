@@ -1,1 +1,0 @@
-terraform import typesense_curation.my_curation my_collection.my-curation

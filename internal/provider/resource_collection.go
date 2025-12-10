@@ -422,14 +422,14 @@ func (r *CollectionResource) Update(ctx context.Context, req resource.UpdateRequ
 	*drop = true
 
 	for _, field := range plan.Fields {
-		//item not exists, need to create
+		// item not exists, need to create
 		if _, ok := stateItems[field.Name.ValueString()]; !ok {
 			schema.Fields = append(schema.Fields, filedModelToApiField(field))
 
 			tflog.Info(ctx, "###Field will be created: "+field.Name.ValueString())
 
 		} else if stateItems[field.Name.ValueString()] != field {
-			//item was changed, need to update
+			// item was changed, need to update
 
 			schema.Fields = append(schema.Fields,
 				api.Field{
@@ -440,11 +440,11 @@ func (r *CollectionResource) Update(ctx context.Context, req resource.UpdateRequ
 			tflog.Info(ctx, "###Field will be updated: "+field.Name.ValueString())
 
 		} else {
-			//item was not changed, do nothing
+			// item was not changed, do nothing
 			tflog.Info(ctx, "###Field remaining the same: "+field.Name.ValueString())
 		}
 
-		//delete processed field from the state object
+		// delete processed field from the state object
 		delete(stateItems, field.Name.ValueString())
 	}
 
@@ -464,7 +464,36 @@ func (r *CollectionResource) Update(ctx context.Context, req resource.UpdateRequ
 		return
 	}
 
-	plan.Id = types.StringValue(state.Id.ValueString())
+	// Read back the updated collection to get all computed field attributes
+	collection, err := r.client.Collection(state.Id.ValueString()).Retrieve(ctx)
+	if err != nil {
+		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to retrieve updated collection, got error: %s", err))
+		return
+	}
+
+	plan.Id = types.StringValue(collection.Name)
+	plan.Name = types.StringValue(collection.Name)
+
+	if collection.DefaultSortingField != nil && *collection.DefaultSortingField != "" {
+		plan.DefaultSortingField = types.StringPointerValue(collection.DefaultSortingField)
+	}
+
+	plan.EnableNestedFields = types.BoolPointerValue(collection.EnableNestedFields)
+	plan.Fields = flattenCollectionFields(collection.Fields)
+
+	plan.SymbolsToIndex = []types.String{}
+	if collection.SymbolsToIndex != nil {
+		for _, symbol := range *collection.SymbolsToIndex {
+			plan.SymbolsToIndex = append(plan.SymbolsToIndex, types.StringValue(symbol))
+		}
+	}
+
+	plan.TokenSeparators = []types.String{}
+	if collection.TokenSeparators != nil {
+		for _, token := range *collection.TokenSeparators {
+			plan.TokenSeparators = append(plan.TokenSeparators, types.StringValue(token))
+		}
+	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }

@@ -22,9 +22,20 @@ var testAccProtoV6ProviderFactories = map[string]func() (tfprotov6.ProviderServe
 }
 
 func testAccPreCheck(t *testing.T) {
-	os.Setenv("TYPESENSE_API_KEY", "1")
-	os.Setenv("TYPESENSE_API_ADDRESS", "1")
-	// You can add code here to run prior to any test case execution, for example assertions
-	// about the appropriate environment variables being set are common to see in a pre-check
-	// function.
+	// Check if required environment variables are set
+	// If not set, use default values for local testing
+	if os.Getenv("TYPESENSE_API_KEY") == "" {
+		os.Setenv("TYPESENSE_API_KEY", "test-api-key")
+	}
+	if os.Getenv("TYPESENSE_API_ADDRESS") == "" {
+		os.Setenv("TYPESENSE_API_ADDRESS", "http://localhost:8108")
+	}
+
+	// Validate that environment variables are now set
+	if v := os.Getenv("TYPESENSE_API_KEY"); v == "" {
+		t.Fatal("TYPESENSE_API_KEY must be set for acceptance tests")
+	}
+	if v := os.Getenv("TYPESENSE_API_ADDRESS"); v == "" {
+		t.Fatal("TYPESENSE_API_ADDRESS must be set for acceptance tests")
+	}
 }

@@ -47,12 +47,12 @@ func parseMapToJsonString(data map[string]interface{}) (jsontypes.Normalized, er
 }
 
 func splitCollectionRelatedId(input string) (string, string, error) {
-	eles := strings.Split(input, ".")
-	if len(eles) != 2 {
+	parts := strings.Split(input, ".")
+	if len(parts) != 2 {
 		return "", "", fmt.Errorf("invalid format, format should be <collection>.<resource>")
 	}
 
-	return eles[0], eles[1], nil
+	return parts[0], parts[1], nil
 }
 
 func createId(collection string, resource string) string {

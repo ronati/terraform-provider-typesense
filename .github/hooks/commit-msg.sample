@@ -1,0 +1,54 @@
+#!/bin/sh
+# Git commit-msg hook for validating commit messages
+#
+# This hook validates that commit messages follow the Conventional Commits specification
+#
+# Installation:
+#   cp .github/hooks/commit-msg.sample .git/hooks/commit-msg
+#   chmod +x .git/hooks/commit-msg
+#
+# Or use a git hook manager like husky or lefthook
+
+# Check if commitlint is available
+if ! command -v npx >/dev/null 2>&1; then
+    echo "Warning: npx not found. Skipping commit message validation."
+    echo "Install Node.js and run 'npm install' to enable validation."
+    exit 0
+fi
+
+# Check if node_modules exists
+if [ ! -d "node_modules" ]; then
+    echo "Warning: node_modules not found. Run 'npm install' to enable commit message validation."
+    exit 0
+fi
+
+# Validate the commit message
+npx commitlint --edit "$1"
+exit_code=$?
+
+if [ $exit_code -ne 0 ]; then
+    echo ""
+    echo "=========================================="
+    echo "Commit message validation failed!"
+    echo "=========================================="
+    echo ""
+    echo "Your commit message must follow the Conventional Commits specification:"
+    echo ""
+    echo "  type(scope): subject"
+    echo ""
+    echo "Examples:"
+    echo "  feat: add new field type support"
+    echo "  fix: resolve document update issue"
+    echo "  docs: update README"
+    echo "  test: add tests for API key resource"
+    echo ""
+    echo "Valid types: feat, fix, docs, style, refactor, perf, test, chore, ci, build"
+    echo ""
+    echo "For breaking changes, add '!' after type or include 'BREAKING CHANGE:' in body:"
+    echo "  feat!: change API schema"
+    echo ""
+    echo "See: https://www.conventionalcommits.org/"
+    echo ""
+fi
+
+exit $exit_code

@@ -1,0 +1,38 @@
+# Codecov configuration
+# https://docs.codecov.com/docs/codecov-yaml
+
+coverage:
+  status:
+    project:
+      default:
+        target: auto # Auto-compare to base branch
+        threshold: 0.5% # Allow 0.5% drop
+        informational: false # Fail PR if coverage drops
+    patch:
+      default:
+        target: 80% # New code should be 80% covered
+        threshold: 0% # No tolerance for uncovered new code
+        informational: false
+
+comment:
+  # Post PR comment with coverage report
+  require_changes: false # Always comment, even if no coverage change
+  require_base: false # Comment on first PR even without base
+  require_head: true # Only comment if head report exists
+  layout: "header, diff, changes, suggestions, files, footer"
+  behavior: default # Update existing comment
+  hide_project_coverage: false # Show overall project coverage
+  
+  # Customize PR comment sections
+  after_n_builds: 1 # Wait for 1 build before commenting
+  
+ignore:
+  - "**/*_test.go" # Ignore test files from coverage
+  - ".old/**" # Ignore old code
+  - "examples/**" # Ignore examples
+
+# Require CI to pass
+codecov:
+  require_ci_to_pass: yes
+  notify:
+    wait_for_ci: yes
