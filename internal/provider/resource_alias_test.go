@@ -74,6 +74,7 @@ resource "typesense_collection" "test" {
   fields {
     name = "num_employees"
     type = "int32"
+    sort = true
   }
 
   default_sorting_field = "num_employees"
@@ -101,6 +102,7 @@ resource "typesense_collection" "test" {
   fields {
     name = "points"
     type = "int32"
+    sort = true
   }
 
   default_sorting_field = "points"

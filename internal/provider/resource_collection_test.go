@@ -127,6 +127,7 @@ resource "typesense_collection" "test" {
   fields {
     name = "num_employees"
     type = "int32"
+    sort = true
   }
 
   default_sorting_field = "num_employees"
@@ -147,6 +148,7 @@ resource "typesense_collection" "test" {
   fields {
     name = "num_employees"
     type = "int32"
+    sort = true
   }
 
   fields {
@@ -179,6 +181,7 @@ resource "typesense_collection" "test" {
   fields {
     name = "score"
     type = "int32"
+    sort = true
   }
 
   default_sorting_field = "score"
@@ -201,6 +204,7 @@ resource "typesense_collection" "test" {
   fields {
     name = "rating"
     type = "int32"
+    sort = true
   }
 
   default_sorting_field = "rating"
@@ -227,6 +231,7 @@ resource "typesense_collection" "test" {
   fields {
     name = "rank"
     type = "int32"
+    sort = true
   }
 
   default_sorting_field = "rank"
@@ -257,6 +262,7 @@ resource "typesense_collection" "test" {
   fields {
     name = "rating"
     type = "int32"
+    sort = true
   }
 
   default_sorting_field = "rating"

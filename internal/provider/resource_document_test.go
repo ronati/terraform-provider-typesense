@@ -112,6 +112,7 @@ resource "typesense_collection" "test" {
   fields {
     name = "price"
     type = "int32"
+    sort = true
   }
 
   default_sorting_field = "price"
@@ -156,6 +157,7 @@ resource "typesense_collection" "test" {
   fields {
     name = "views"
     type = "int32"
+    sort = true
   }
 
   default_sorting_field = "views"
@@ -188,6 +190,7 @@ resource "typesense_collection" "test" {
   fields {
     name = "count"
     type = "int32"
+    sort = true
   }
 
   default_sorting_field = "count"
@@ -236,6 +239,7 @@ resource "typesense_collection" "test" {
   fields {
     name = "rating"
     type = "int32"
+    sort = true
   }
 
   default_sorting_field = "rating"

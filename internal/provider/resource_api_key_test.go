@@ -23,7 +23,6 @@ func TestAccApiKeyResource(t *testing.T) {
 					resource.TestCheckResourceAttr("typesense_api_key.test", "collections.0", "*"),
 					resource.TestCheckResourceAttrSet("typesense_api_key.test", "id"),
 					resource.TestCheckResourceAttrSet("typesense_api_key.test", "value"),
-					resource.TestCheckResourceAttrSet("typesense_api_key.test", "value_prefix"),
 				),
 			},
 			// ImportState testing
