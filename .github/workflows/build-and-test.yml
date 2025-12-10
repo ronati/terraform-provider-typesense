@@ -1,24 +1,77 @@
 name: Build and test
-on: [pull_request]
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
 
 permissions:
   contents: read # for checkout
+  pull-requests: read # for commit validation
 
 jobs:
-  gorelease:
+  # Validate commit messages follow conventional commits
+  commit-lint:
     runs-on: ubuntu-latest
-    environment:
-      name: release
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22.x"
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Validate PR commits with commitlint
+        run: npx commitlint --from ${{ github.event.pull_request.base.sha }} --to ${{ github.event.pull_request.head.sha }} --verbose
+
+  # Build and test the provider
+  build-and-test:
+    runs-on: ubuntu-latest
+    services:
+      typesense:
+        image: typesense/typesense:29.0
+        env:
+          TYPESENSE_DATA_DIR: /tmp
+          TYPESENSE_API_KEY: test-api-key
+        ports:
+          - 8108:8108
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
           go-version: 1.22.x
+
+      - name: Wait for Typesense to be ready
+        run: |
+          echo "Waiting for Typesense to start..."
+          timeout 30 bash -c 'until curl -f http://localhost:8108/health > /dev/null 2>&1; do sleep 1; done'
+          echo "Typesense is ready!"
+
+      - name: Verify Typesense
+        run: |
+          echo "Verifying Typesense connection..."
+          curl -H "X-TYPESENSE-API-KEY: test-api-key" http://localhost:8108/health
+          echo ""
+          echo "Typesense is operational!"
+
       - name: Build app
         run: make build
-      - name: Test app
+
+      - name: Run unit tests
+        run: go test -v -short ./...
+
+      - name: Run acceptance tests
+        env:
+          TYPESENSE_API_KEY: test-api-key
+          TYPESENSE_API_ADDRESS: http://localhost:8108
+          TF_ACC: "1"
         run: make testacc
