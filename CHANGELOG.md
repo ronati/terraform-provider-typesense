@@ -1,3 +1,16 @@
+# [2.1.0](https://github.com/ronati/terraform-provider-typesense/compare/v2.0.0...v2.1.0) (2025-12-10)
+
+
+### Features
+
+* added pr validation ([f42e9bb](https://github.com/ronati/terraform-provider-typesense/commit/f42e9bbe20486997d9dd12fe522b2315ea0f7a39))
+* added test coverage report ([5c42c8c](https://github.com/ronati/terraform-provider-typesense/commit/5c42c8cf83f7128cce5b1c278c09b1f278694ae7))
+* added test coverage report ([bced5e0](https://github.com/ronati/terraform-provider-typesense/commit/bced5e0dfb9eaa97f7a83cdba9e7ec0b350244e2))
+* fix test ([43aea0d](https://github.com/ronati/terraform-provider-typesense/commit/43aea0de55de9b79b77e73556590eef0722c63ad))
+* fixed tests ([86e509d](https://github.com/ronati/terraform-provider-typesense/commit/86e509d7514222426a0da5a1eb82d4f5b76a8db0))
+* update tests ([344017f](https://github.com/ronati/terraform-provider-typesense/commit/344017f70b054666fedc52c60d41f1c1d7190866))
+* update tests ([5ebf3f6](https://github.com/ronati/terraform-provider-typesense/commit/5ebf3f61e4d16ceb7cb15a20761aafb068b25fdb))
+
 # [2.0.0](https://github.com/ronati/terraform-provider-typesense/compare/v1.8.0...v2.0.0) (2025-08-08)
 
 
