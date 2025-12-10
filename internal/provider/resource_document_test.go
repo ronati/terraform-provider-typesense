@@ -107,12 +107,14 @@ resource "typesense_collection" "test" {
   fields {
     name = "product_name"
     type = "string"
+    store = true
   }
 
   fields {
     name = "price"
     type = "int32"
     sort = true
+    store = true
   }
 
   default_sorting_field = "price"
@@ -137,27 +139,32 @@ resource "typesense_collection" "test" {
   fields {
     name = "title"
     type = "string"
+    store = true
   }
 
   fields {
     name = "description"
     type = "string"
+    store = true
   }
 
   fields {
     name = "rating"
     type = "float"
+    store = true
   }
 
   fields {
     name = "in_stock"
     type = "bool"
+    store = true
   }
 
   fields {
     name = "views"
     type = "int32"
     sort = true
+    store = true
   }
 
   default_sorting_field = "views"
@@ -185,12 +192,14 @@ resource "typesense_collection" "test" {
   fields {
     name = "title"
     type = "string"
+    store = true
   }
 
   fields {
     name = "count"
     type = "int32"
     sort = true
+    store = true
   }
 
   default_sorting_field = "count"
@@ -224,22 +233,26 @@ resource "typesense_collection" "test" {
   fields {
     name = "title"
     type = "string"
+    store = true
   }
 
   fields {
     name = "tags"
     type = "string[]"
+    store = true
   }
 
   fields {
     name = "scores"
     type = "int32[]"
+    store = true
   }
 
   fields {
     name = "rating"
     type = "int32"
     sort = true
+    store = true
   }
 
   default_sorting_field = "rating"
