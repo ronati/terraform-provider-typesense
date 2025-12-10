@@ -28,6 +28,24 @@ jobs:
       - name: Validate PR commits with commitlint
         run: npx commitlint --from ${{ github.event.pull_request.base.sha }} --to ${{ github.event.pull_request.head.sha }} --verbose
 
+  # Lint Go code
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: 1.22.x
+
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v4
+        with:
+          version: latest
+          args: --timeout=5m
+
   # Build and test the provider
   build-and-test:
     runs-on: ubuntu-latest
@@ -69,9 +87,17 @@ jobs:
       - name: Run unit tests
         run: go test -v -short ./...
 
-      - name: Run acceptance tests
+      - name: Run acceptance tests with coverage
         env:
           TYPESENSE_API_KEY: test-api-key
           TYPESENSE_API_ADDRESS: http://localhost:8108
           TF_ACC: "1"
-        run: make testacc
+        run: go test ./... -v -coverprofile=coverage.out -timeout 120m
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./coverage.out
+          flags: acceptance-tests
+          name: codecov-terraform-provider-typesense
+          fail_ci_if_error: false

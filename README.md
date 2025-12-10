@@ -1,6 +1,12 @@
 <div align="center">
   <h1>Terraform Provider for Typesense</h1>
   <strong>This is a Terraform provider for Typesense</strong>
+
+  <br><br>
+
+  [![Tests](https://github.com/ronati/terraform-provider-typesense/actions/workflows/build-and-test.yml/badge.svg)](https://github.com/ronati/terraform-provider-typesense/actions/workflows/build-and-test.yml)
+  [![codecov](https://codecov.io/gh/ronati/terraform-provider-typesense/branch/master/graph/badge.svg)](https://codecov.io/gh/ronati/terraform-provider-typesense)
+  [![Go Report Card](https://goreportcard.com/badge/github.com/ronati/terraform-provider-typesense)](https://goreportcard.com/report/github.com/ronati/terraform-provider-typesense)
 </div>
 
 <hr>

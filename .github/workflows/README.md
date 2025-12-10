@@ -38,9 +38,20 @@ This directory contains the CI/CD workflows for the Terraform Typesense Provider
 - Add `BREAKING CHANGE:` in the commit body or use `!` after type: `feat!: change API`
 - Triggers major version bump
 
+#### Lint
+- Runs golangci-lint to check code quality
+- Enforces consistent code style
+- Catches common bugs and issues
+- Configuration: `.golangci.yml`
+- Enabled linters:
+  - errcheck, gosimple, govet, ineffassign, staticcheck, unused
+  - gofmt, goimports, misspell, revive
+  - gosec (security), gocritic (quality)
+
 #### Build and Test
 - Runs against Typesense v29.0 server in a Docker container
 - Executes both unit tests and acceptance tests
+- Generates code coverage report (uploaded to Codecov)
 - Validates that the provider builds successfully
 - Required environment variables:
   - `TYPESENSE_API_KEY`: API key for Typesense (set to `test-api-key` in CI)
