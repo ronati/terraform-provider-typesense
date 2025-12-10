@@ -122,10 +122,24 @@ func (r *DocumentResource) Create(ctx context.Context, req resource.CreateReques
 		return
 	}
 
-	data.Id = types.StringValue(createId(data.CollectionName.ValueString(), result["id"].(string)))
+	docId := result["id"].(string)
+	data.Id = types.StringValue(createId(data.CollectionName.ValueString(), docId))
 
-	// In v3 API, creation only returns the ID, so we keep the original document content
-	// The document content is already set in data.Document from the original request
+	// Read back the document to ensure consistent JSON formatting
+	retrievedDoc, err := r.client.Collection(data.CollectionName.ValueString()).Document(docId).Retrieve(ctx)
+	if err != nil {
+		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to retrieve created document, got error: %s", err))
+		return
+	}
+
+	data.Name = types.StringValue(retrievedDoc["id"].(string))
+	delete(retrievedDoc, "id")
+
+	data.Document, err = parseMapToJsonString(retrievedDoc)
+	if err != nil {
+		resp.Diagnostics.AddError("JSON format error", fmt.Sprintf("Unable to parse json response, got error: %s", err))
+		return
+	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
@@ -252,5 +266,18 @@ func (r *DocumentResource) Delete(ctx context.Context, req resource.DeleteReques
 }
 
 func (r *DocumentResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	// ID format is: collection_name.document_id
+	collectionName, documentId, err := splitCollectionRelatedId(req.ID)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Invalid Import ID",
+			fmt.Sprintf("Import ID must be in format 'collection_name.document_id', got: %s", req.ID),
+		)
+		return
+	}
+
+	// Set both the ID and collection_name
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), req.ID)...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("collection_name"), collectionName)...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("name"), documentId)...)
 }

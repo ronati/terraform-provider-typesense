@@ -464,7 +464,36 @@ func (r *CollectionResource) Update(ctx context.Context, req resource.UpdateRequ
 		return
 	}
 
-	plan.Id = types.StringValue(state.Id.ValueString())
+	// Read back the updated collection to get all computed field attributes
+	collection, err := r.client.Collection(state.Id.ValueString()).Retrieve(ctx)
+	if err != nil {
+		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to retrieve updated collection, got error: %s", err))
+		return
+	}
+
+	plan.Id = types.StringValue(collection.Name)
+	plan.Name = types.StringValue(collection.Name)
+
+	if collection.DefaultSortingField != nil && *collection.DefaultSortingField != "" {
+		plan.DefaultSortingField = types.StringPointerValue(collection.DefaultSortingField)
+	}
+
+	plan.EnableNestedFields = types.BoolPointerValue(collection.EnableNestedFields)
+	plan.Fields = flattenCollectionFields(collection.Fields)
+
+	plan.SymbolsToIndex = []types.String{}
+	if collection.SymbolsToIndex != nil {
+		for _, symbol := range *collection.SymbolsToIndex {
+			plan.SymbolsToIndex = append(plan.SymbolsToIndex, types.StringValue(symbol))
+		}
+	}
+
+	plan.TokenSeparators = []types.String{}
+	if collection.TokenSeparators != nil {
+		for _, token := range *collection.TokenSeparators {
+			plan.TokenSeparators = append(plan.TokenSeparators, types.StringValue(token))
+		}
+	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }

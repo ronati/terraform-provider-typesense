@@ -248,5 +248,18 @@ func (r *SynonymResource) Delete(ctx context.Context, req resource.DeleteRequest
 }
 
 func (r *SynonymResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	// ID format is: collection_name.synonym_id
+	collectionName, synonymId, err := splitCollectionRelatedId(req.ID)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Invalid Import ID",
+			fmt.Sprintf("Import ID must be in format 'collection_name.synonym_id', got: %s", req.ID),
+		)
+		return
+	}
+
+	// Set both the ID and collection_name
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), req.ID)...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("collection_name"), collectionName)...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("name"), synonymId)...)
 }
