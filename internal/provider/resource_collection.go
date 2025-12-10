@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/listdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/listplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -27,6 +26,7 @@ import (
 // Ensure provider defined types fully satisfy framework interfaces.
 var _ resource.Resource = &CollectionResource{}
 var _ resource.ResourceWithImportState = &CollectionResource{}
+var _ resource.ResourceWithModifyPlan = &CollectionResource{}
 
 func NewCollectionResource() resource.Resource {
 	return &CollectionResource{}
@@ -127,32 +127,27 @@ func (r *CollectionResource) Schema(ctx context.Context, req resource.SchemaRequ
 						"facet": schema.BoolAttribute{
 							Optional:    true,
 							Computed:    true,
-							Description: "Facet field",
-							Default:     booldefault.StaticBool(false),
+							Description: "Facet field. Defaults to false.",
 						},
 						"index": schema.BoolAttribute{
 							Optional:    true,
 							Computed:    true,
-							Description: "Index field",
-							Default:     booldefault.StaticBool(true),
+							Description: "Index field. Defaults to true.",
 						},
 						"optional": schema.BoolAttribute{
 							Optional:    true,
 							Computed:    true,
-							Description: "Optional field",
-							Default:     booldefault.StaticBool(false),
+							Description: "Optional field. Defaults to false.",
 						},
 						"sort": schema.BoolAttribute{
 							Optional:    true,
 							Computed:    true,
-							Description: "Sort field",
-							Default:     booldefault.StaticBool(false),
+							Description: "Sort field. Defaults to false.",
 						},
 						"infix": schema.BoolAttribute{
 							Optional:    true,
 							Computed:    true,
-							Description: "Infix field",
-							Default:     booldefault.StaticBool(false),
+							Description: "Infix field. Defaults to false.",
 						},
 						"type": schema.StringAttribute{
 							Required:    true,
@@ -181,26 +176,22 @@ func (r *CollectionResource) Schema(ctx context.Context, req resource.SchemaRequ
 						"stem": schema.BoolAttribute{
 							Optional:    true,
 							Computed:    true,
-							Description: "Enable stemming on field",
-							Default:     booldefault.StaticBool(false),
+							Description: "Enable stemming on field. Defaults to false.",
 						},
 						"stem_dictionary": schema.StringAttribute{
 							Optional:    true,
 							Computed:    true,
-							Description: "Custom stemming dictionary",
-							Default:     stringdefault.StaticString(""),
+							Description: "Custom stemming dictionary. Defaults to empty string.",
 						},
 						"locale": schema.StringAttribute{
 							Optional:    true,
 							Computed:    true,
-							Description: "Locale for language-specific tokenization",
-							Default:     stringdefault.StaticString(""),
+							Description: "Locale for language-specific tokenization. Defaults to empty string.",
 						},
 						"store": schema.BoolAttribute{
 							Optional:    true,
 							Computed:    true,
-							Description: "Store field value on disk",
-							Default:     booldefault.StaticBool(true),
+							Description: "Store field value on disk. Defaults to true.",
 						},
 					},
 				},
@@ -354,6 +345,20 @@ func (r *CollectionResource) Read(ctx context.Context, req resource.ReadRequest,
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
+func boolPointerValueWithDefault(ptr *bool, defaultVal bool) types.Bool {
+	if ptr == nil {
+		return types.BoolValue(defaultVal)
+	}
+	return types.BoolValue(*ptr)
+}
+
+func stringPointerValueWithDefault(ptr *string, defaultVal string) types.String {
+	if ptr == nil {
+		return types.StringValue(defaultVal)
+	}
+	return types.StringValue(*ptr)
+}
+
 func flattenCollectionFields(fields []api.Field) []CollectionResourceFieldModel {
 	if fields != nil {
 		fis := make([]CollectionResourceFieldModel, len(fields))
@@ -361,16 +366,16 @@ func flattenCollectionFields(fields []api.Field) []CollectionResourceFieldModel 
 		for i, fieldResponse := range fields {
 			var field CollectionResourceFieldModel
 			field.Name = types.StringValue(fieldResponse.Name)
-			field.Facet = types.BoolPointerValue(fieldResponse.Facet)
-			field.Index = types.BoolPointerValue(fieldResponse.Index)
-			field.Optional = types.BoolPointerValue(fieldResponse.Optional)
-			field.Sort = types.BoolPointerValue(fieldResponse.Sort)
-			field.Infix = types.BoolPointerValue(fieldResponse.Infix)
+			field.Facet = boolPointerValueWithDefault(fieldResponse.Facet, false)
+			field.Index = boolPointerValueWithDefault(fieldResponse.Index, true)
+			field.Optional = boolPointerValueWithDefault(fieldResponse.Optional, false)
+			field.Sort = boolPointerValueWithDefault(fieldResponse.Sort, false)
+			field.Infix = boolPointerValueWithDefault(fieldResponse.Infix, false)
 			field.Type = types.StringValue(fieldResponse.Type)
-			field.Stem = types.BoolPointerValue(fieldResponse.Stem)
-			field.StemDictionary = types.StringPointerValue(fieldResponse.StemDictionary)
-			field.Locale = types.StringPointerValue(fieldResponse.Locale)
-			field.Store = types.BoolPointerValue(fieldResponse.Store)
+			field.Stem = boolPointerValueWithDefault(fieldResponse.Stem, false)
+			field.StemDictionary = stringPointerValueWithDefault(fieldResponse.StemDictionary, "")
+			field.Locale = stringPointerValueWithDefault(fieldResponse.Locale, "")
+			field.Store = boolPointerValueWithDefault(fieldResponse.Store, true)
 			fis[i] = field
 		}
 
@@ -509,6 +514,62 @@ func (r *CollectionResource) Delete(ctx context.Context, req resource.DeleteRequ
 
 func (r *CollectionResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+}
+
+func (r *CollectionResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+	if req.Plan.Raw.IsNull() {
+		return
+	}
+
+	var plan CollectionResourceModel
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	modified := false
+	for i := range plan.Fields {
+		if plan.Fields[i].Facet.IsUnknown() || plan.Fields[i].Facet.IsNull() {
+			plan.Fields[i].Facet = types.BoolValue(false)
+			modified = true
+		}
+		if plan.Fields[i].Index.IsUnknown() || plan.Fields[i].Index.IsNull() {
+			plan.Fields[i].Index = types.BoolValue(true)
+			modified = true
+		}
+		if plan.Fields[i].Optional.IsUnknown() || plan.Fields[i].Optional.IsNull() {
+			plan.Fields[i].Optional = types.BoolValue(false)
+			modified = true
+		}
+		if plan.Fields[i].Sort.IsUnknown() || plan.Fields[i].Sort.IsNull() {
+			plan.Fields[i].Sort = types.BoolValue(false)
+			modified = true
+		}
+		if plan.Fields[i].Infix.IsUnknown() || plan.Fields[i].Infix.IsNull() {
+			plan.Fields[i].Infix = types.BoolValue(false)
+			modified = true
+		}
+		if plan.Fields[i].Stem.IsUnknown() || plan.Fields[i].Stem.IsNull() {
+			plan.Fields[i].Stem = types.BoolValue(false)
+			modified = true
+		}
+		if plan.Fields[i].StemDictionary.IsUnknown() || plan.Fields[i].StemDictionary.IsNull() {
+			plan.Fields[i].StemDictionary = types.StringValue("")
+			modified = true
+		}
+		if plan.Fields[i].Locale.IsUnknown() || plan.Fields[i].Locale.IsNull() {
+			plan.Fields[i].Locale = types.StringValue("")
+			modified = true
+		}
+		if plan.Fields[i].Store.IsUnknown() || plan.Fields[i].Store.IsNull() {
+			plan.Fields[i].Store = types.BoolValue(true)
+			modified = true
+		}
+	}
+
+	if modified {
+		resp.Diagnostics.Append(resp.Plan.Set(ctx, &plan)...)
+	}
 }
 
 func filedModelToApiField(field CollectionResourceFieldModel) api.Field {
