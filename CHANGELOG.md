@@ -1,3 +1,12 @@
+# [2.2.0](https://github.com/ronati/terraform-provider-typesense/compare/v2.1.0...v2.2.0) (2025-12-10)
+
+
+### Features
+
+* add tests for collection resource field defaults ([d65ee3f](https://github.com/ronati/terraform-provider-typesense/commit/d65ee3f323ff275935d654be1d47717844e5be4e))
+* enhance field default handling and add ModifyPlan support ([47c535c](https://github.com/ronati/terraform-provider-typesense/commit/47c535cec6f9a3c65b1e84be394a2028bd09fae8))
+* replace plan modifiers with default values ([7f42329](https://github.com/ronati/terraform-provider-typesense/commit/7f423294a044bc7212ecfa9724849e660cc1d48a))
+
 # [2.1.0](https://github.com/ronati/terraform-provider-typesense/compare/v2.0.0...v2.1.0) (2025-12-10)
 
 

@@ -63,15 +63,15 @@ Required:
 
 Optional:
 
-- `facet` (Boolean) Facet field
-- `index` (Boolean) Index field
-- `infix` (Boolean) Infix field
-- `locale` (String) Locale for language-specific tokenization
-- `optional` (Boolean) Optional field
-- `sort` (Boolean) Sort field
-- `stem` (Boolean) Enable stemming on field
-- `stem_dictionary` (String) Custom stemming dictionary
-- `store` (Boolean) Store field value on disk
+- `facet` (Boolean) Facet field. Defaults to false.
+- `index` (Boolean) Index field. Defaults to true.
+- `infix` (Boolean) Infix field. Defaults to false.
+- `locale` (String) Locale for language-specific tokenization. Defaults to empty string.
+- `optional` (Boolean) Optional field. Defaults to false.
+- `sort` (Boolean) Sort field. Defaults to false.
+- `stem` (Boolean) Enable stemming on field. Defaults to false.
+- `stem_dictionary` (String) Custom stemming dictionary. Defaults to empty string.
+- `store` (Boolean) Store field value on disk. Defaults to true.
 
 ## Import
 
