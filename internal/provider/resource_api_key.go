@@ -88,10 +88,10 @@ func (r *ApiKeyResource) Schema(ctx context.Context, req resource.SchemaRequest,
 				},
 			},
 			"value": schema.StringAttribute{
-	            MarkdownDescription: "The actual API key value. If not provided, Typesense will auto-generate one.",
+				MarkdownDescription: "The actual API key value. If not provided, Typesense will auto-generate one.",
 				Optional:            true,
 				Computed:            true,
-				Sensitive:           true,				
+				Sensitive:           true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
