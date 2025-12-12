@@ -58,6 +58,7 @@ type CollectionResourceFieldModel struct {
 	StemDictionary types.String `tfsdk:"stem_dictionary"`
 	Locale         types.String `tfsdk:"locale"`
 	Store          types.Bool   `tfsdk:"store"`
+	NumDim         types.Int64  `tfsdk:"num_dim"`
 }
 
 func (r *CollectionResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -192,6 +193,10 @@ func (r *CollectionResource) Schema(ctx context.Context, req resource.SchemaRequ
 							Optional:    true,
 							Computed:    true,
 							Description: "Store field value on disk. Defaults to true.",
+						},
+						"num_dim": schema.Int64Attribute{
+							Optional:    true,
+							Description: "Number of dimensions for vector fields (float[] type). Required for vector search.",
 						},
 					},
 				},
@@ -359,6 +364,13 @@ func stringPointerValueWithDefault(ptr *string, defaultVal string) types.String 
 	return types.StringValue(*ptr)
 }
 
+func intPointerValue(ptr *int) types.Int64 {
+	if ptr == nil {
+		return types.Int64Null()
+	}
+	return types.Int64Value(int64(*ptr))
+}
+
 func flattenCollectionFields(fields []api.Field) []CollectionResourceFieldModel {
 	if fields != nil {
 		fis := make([]CollectionResourceFieldModel, len(fields))
@@ -376,6 +388,7 @@ func flattenCollectionFields(fields []api.Field) []CollectionResourceFieldModel 
 			field.StemDictionary = stringPointerValueWithDefault(fieldResponse.StemDictionary, "")
 			field.Locale = stringPointerValueWithDefault(fieldResponse.Locale, "")
 			field.Store = boolPointerValueWithDefault(fieldResponse.Store, true)
+			field.NumDim = intPointerValue(fieldResponse.NumDim)
 			fis[i] = field
 		}
 
@@ -573,7 +586,7 @@ func (r *CollectionResource) ModifyPlan(ctx context.Context, req resource.Modify
 }
 
 func filedModelToApiField(field CollectionResourceFieldModel) api.Field {
-	return api.Field{
+	apiField := api.Field{
 		Name:           field.Name.ValueString(),
 		Facet:          field.Facet.ValueBoolPointer(),
 		Index:          field.Index.ValueBoolPointer(),
@@ -586,4 +599,11 @@ func filedModelToApiField(field CollectionResourceFieldModel) api.Field {
 		Locale:         field.Locale.ValueStringPointer(),
 		Store:          field.Store.ValueBoolPointer(),
 	}
+
+	if !field.NumDim.IsNull() && !field.NumDim.IsUnknown() {
+		numDim := int(field.NumDim.ValueInt64())
+		apiField.NumDim = &numDim
+	}
+
+	return apiField
 }
