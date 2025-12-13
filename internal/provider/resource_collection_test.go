@@ -410,3 +410,228 @@ resource "typesense_collection" "test" {
 }
 `, name)
 }
+
+func TestAccCollectionResource_VectorFieldWithNumDim(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCollectionResourceConfigVectorField("test_collection_vector"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("typesense_collection.test", "name", "test_collection_vector"),
+					resource.TestCheckResourceAttr("typesense_collection.test", "fields.#", "3"),
+					resource.TestCheckResourceAttrSet("typesense_collection.test", "id"),
+				),
+			},
+			{
+				ResourceName:      "typesense_collection.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccCollectionResource_VectorFieldUpdate(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCollectionResourceConfigBasic("test_collection_vector_update"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("typesense_collection.test", "name", "test_collection_vector_update"),
+					resource.TestCheckResourceAttr("typesense_collection.test", "fields.#", "2"),
+				),
+			},
+			{
+				Config: testAccCollectionResourceConfigAddVectorField("test_collection_vector_update"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("typesense_collection.test", "name", "test_collection_vector_update"),
+					resource.TestCheckResourceAttr("typesense_collection.test", "fields.#", "3"),
+				),
+			},
+			{
+				Config: testAccCollectionResourceConfigBasic("test_collection_vector_update"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("typesense_collection.test", "name", "test_collection_vector_update"),
+					resource.TestCheckResourceAttr("typesense_collection.test", "fields.#", "2"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccCollectionResource_VectorFieldNumDimChange(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCollectionResourceConfigVectorFieldDim("test_collection_dim_change", 128),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("typesense_collection.test", "name", "test_collection_dim_change"),
+					resource.TestCheckResourceAttr("typesense_collection.test", "fields.#", "3"),
+				),
+			},
+			{
+				Config: testAccCollectionResourceConfigVectorFieldDim("test_collection_dim_change", 256),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("typesense_collection.test", "name", "test_collection_dim_change"),
+					resource.TestCheckResourceAttr("typesense_collection.test", "fields.#", "3"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccCollectionResource_FloatArrayWithoutNumDim(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCollectionResourceConfigFloatArrayNoNumDim("test_collection_float_array"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("typesense_collection.test", "name", "test_collection_float_array"),
+					resource.TestCheckResourceAttr("typesense_collection.test", "fields.#", "3"),
+					resource.TestCheckResourceAttrSet("typesense_collection.test", "id"),
+				),
+			},
+			{
+				ResourceName:      "typesense_collection.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func testAccCollectionResourceConfigVectorField(name string) string {
+	return fmt.Sprintf(`
+resource "typesense_collection" "test" {
+  name = %[1]q
+
+  fields {
+    name = "title"
+    type = "string"
+  }
+
+  fields {
+    name    = "embedding"
+    type    = "float[]"
+    num_dim = 768
+  }
+
+  fields {
+    name = "rating"
+    type = "int32"
+    sort = true
+  }
+
+  default_sorting_field = "rating"
+}
+`, name)
+}
+
+func testAccCollectionResourceConfigBasic(name string) string {
+	return fmt.Sprintf(`
+resource "typesense_collection" "test" {
+  name = %[1]q
+
+  fields {
+    name = "title"
+    type = "string"
+  }
+
+  fields {
+    name = "rating"
+    type = "int32"
+    sort = true
+  }
+
+  default_sorting_field = "rating"
+}
+`, name)
+}
+
+func testAccCollectionResourceConfigAddVectorField(name string) string {
+	return fmt.Sprintf(`
+resource "typesense_collection" "test" {
+  name = %[1]q
+
+  fields {
+    name = "title"
+    type = "string"
+  }
+
+  fields {
+    name    = "embedding"
+    type    = "float[]"
+    num_dim = 512
+  }
+
+  fields {
+    name = "rating"
+    type = "int32"
+    sort = true
+  }
+
+  default_sorting_field = "rating"
+}
+`, name)
+}
+
+func testAccCollectionResourceConfigVectorFieldDim(name string, dim int) string {
+	return fmt.Sprintf(`
+resource "typesense_collection" "test" {
+  name = %[1]q
+
+  fields {
+    name = "title"
+    type = "string"
+  }
+
+  fields {
+    name    = "embedding"
+    type    = "float[]"
+    num_dim = %[2]d
+  }
+
+  fields {
+    name = "rating"
+    type = "int32"
+    sort = true
+  }
+
+  default_sorting_field = "rating"
+}
+`, name, dim)
+}
+
+func testAccCollectionResourceConfigFloatArrayNoNumDim(name string) string {
+	return fmt.Sprintf(`
+resource "typesense_collection" "test" {
+  name = %[1]q
+
+  fields {
+    name = "title"
+    type = "string"
+  }
+
+  fields {
+    name = "scores"
+    type = "float[]"
+  }
+
+  fields {
+    name = "rating"
+    type = "int32"
+    sort = true
+  }
+
+  default_sorting_field = "rating"
+}
+`, name)
+}
