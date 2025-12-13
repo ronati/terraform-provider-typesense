@@ -1,3 +1,10 @@
+# [2.3.0](https://github.com/ronati/terraform-provider-typesense/compare/v2.2.0...v2.3.0) (2025-12-13)
+
+
+### Features
+
+* add num_dim support for vector fields in collection resource ([7363e6b](https://github.com/ronati/terraform-provider-typesense/commit/7363e6ba3a53e0ff3b6528a2e97709a582c0a7b2))
+
 # [2.2.0](https://github.com/ronati/terraform-provider-typesense/compare/v2.1.0...v2.2.0) (2025-12-10)
 
 

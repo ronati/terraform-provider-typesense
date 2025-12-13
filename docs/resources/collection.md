@@ -67,6 +67,7 @@ Optional:
 - `index` (Boolean) Index field. Defaults to true.
 - `infix` (Boolean) Infix field. Defaults to false.
 - `locale` (String) Locale for language-specific tokenization. Defaults to empty string.
+- `num_dim` (Number) Number of dimensions for vector fields (float[] type). Required for vector search.
 - `optional` (Boolean) Optional field. Defaults to false.
 - `sort` (Boolean) Sort field. Defaults to false.
 - `stem` (Boolean) Enable stemming on field. Defaults to false.
