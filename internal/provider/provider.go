@@ -121,8 +121,7 @@ func (p *TypesenseProvider) Configure(ctx context.Context, req provider.Configur
 	client := typesense.NewClient(
 		typesense.WithServer(api_address),
 		typesense.WithAPIKey(api_key),
-		typesense.WithConnectionTimeout(5*time.Minute),
-		typesense.WithConnectionTimeout(5*time.Second),
+		typesense.WithConnectionTimeout(30*time.Second),
 		typesense.WithCircuitBreakerMaxRequests(50),
 		typesense.WithCircuitBreakerInterval(2*time.Minute),
 		typesense.WithCircuitBreakerTimeout(1*time.Minute))

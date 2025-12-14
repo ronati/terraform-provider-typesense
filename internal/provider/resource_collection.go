@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	"reflect"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -47,18 +48,45 @@ type CollectionResourceModel struct {
 }
 
 type CollectionResourceFieldModel struct {
-	Name           types.String `tfsdk:"name"`
-	Facet          types.Bool   `tfsdk:"facet"`
-	Index          types.Bool   `tfsdk:"index"`
-	Optional       types.Bool   `tfsdk:"optional"`
-	Sort           types.Bool   `tfsdk:"sort"`
-	Infix          types.Bool   `tfsdk:"infix"`
-	Type           types.String `tfsdk:"type"`
-	Stem           types.Bool   `tfsdk:"stem"`
-	StemDictionary types.String `tfsdk:"stem_dictionary"`
-	Locale         types.String `tfsdk:"locale"`
-	Store          types.Bool   `tfsdk:"store"`
-	NumDim         types.Int64  `tfsdk:"num_dim"`
+	Name           types.String               `tfsdk:"name"`
+	Facet          types.Bool                 `tfsdk:"facet"`
+	Index          types.Bool                 `tfsdk:"index"`
+	Optional       types.Bool                 `tfsdk:"optional"`
+	Sort           types.Bool                 `tfsdk:"sort"`
+	Infix          types.Bool                 `tfsdk:"infix"`
+	Type           types.String               `tfsdk:"type"`
+	Stem           types.Bool                 `tfsdk:"stem"`
+	StemDictionary types.String               `tfsdk:"stem_dictionary"`
+	Locale         types.String               `tfsdk:"locale"`
+	Store          types.Bool                 `tfsdk:"store"`
+	NumDim         types.Int64                `tfsdk:"num_dim"`
+	Embed          *CollectionFieldEmbedModel `tfsdk:"embed"`
+}
+
+type CollectionFieldEmbedModel struct {
+	From        []types.String                        `tfsdk:"from"`
+	ModelConfig *CollectionFieldEmbedModelConfigModel `tfsdk:"model_config"`
+}
+
+type CollectionFieldEmbedModelConfigModel struct {
+	ModelName types.String `tfsdk:"model_name"`
+}
+
+// fieldEmbedAPI mirrors the inline embed struct on api.Field.
+type fieldEmbedAPI = struct {
+	From        []string `json:"from"`
+	ModelConfig struct {
+		AccessToken    *string `json:"access_token,omitempty"`
+		ApiKey         *string `json:"api_key,omitempty"`
+		ClientId       *string `json:"client_id,omitempty"`
+		ClientSecret   *string `json:"client_secret,omitempty"`
+		IndexingPrefix *string `json:"indexing_prefix,omitempty"`
+		ModelName      string  `json:"model_name"`
+		ProjectId      *string `json:"project_id,omitempty"`
+		QueryPrefix    *string `json:"query_prefix,omitempty"`
+		RefreshToken   *string `json:"refresh_token,omitempty"`
+		Url            *string `json:"url,omitempty"`
+	} `json:"model_config"`
 }
 
 func (r *CollectionResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -170,6 +198,7 @@ func (r *CollectionResource) Schema(ctx context.Context, req resource.SchemaRequ
 									"geopoint[]",
 									"object[]",
 									"string*",
+									"image",
 									"auto",
 								),
 							},
@@ -197,6 +226,27 @@ func (r *CollectionResource) Schema(ctx context.Context, req resource.SchemaRequ
 						"num_dim": schema.Int64Attribute{
 							Optional:    true,
 							Description: "Number of dimensions for vector fields (float[] type). Required for vector search.",
+						},
+					},
+					Blocks: map[string]schema.Block{
+						"embed": schema.SingleNestedBlock{
+							Attributes: map[string]schema.Attribute{
+								"from": schema.ListAttribute{
+									ElementType: types.StringType,
+									Optional:    true,
+									Description: "Fields to generate the embedding from",
+								},
+							},
+							Blocks: map[string]schema.Block{
+								"model_config": schema.SingleNestedBlock{
+									Attributes: map[string]schema.Attribute{
+										"model_name": schema.StringAttribute{
+											Optional:    true,
+											Description: "Model name for embedding generation (e.g. ts/clip-vit-b-p32)",
+										},
+									},
+								},
+							},
 						},
 					},
 				},
@@ -389,6 +439,9 @@ func flattenCollectionFields(fields []api.Field) []CollectionResourceFieldModel 
 			field.Locale = stringPointerValueWithDefault(fieldResponse.Locale, "")
 			field.Store = boolPointerValueWithDefault(fieldResponse.Store, true)
 			field.NumDim = intPointerValue(fieldResponse.NumDim)
+			if fieldResponse.Embed != nil {
+				field.Embed = flattenFieldEmbed(fieldResponse.Embed)
+			}
 			fis[i] = field
 		}
 
@@ -428,7 +481,7 @@ func (r *CollectionResource) Update(ctx context.Context, req resource.UpdateRequ
 
 			tflog.Info(ctx, "###Field will be created: "+field.Name.ValueString())
 
-		} else if stateItems[field.Name.ValueString()] != field {
+		} else if !fieldsEqual(stateItems[field.Name.ValueString()], field) {
 			// item was changed, need to update
 
 			schema.Fields = append(schema.Fields,
@@ -605,5 +658,57 @@ func filedModelToApiField(field CollectionResourceFieldModel) api.Field {
 		apiField.NumDim = &numDim
 	}
 
+	apiField.Embed = fieldEmbedModelToAPI(field.Embed)
+
 	return apiField
+}
+
+func fieldEmbedModelToAPI(embed *CollectionFieldEmbedModel) *fieldEmbedAPI {
+	if embed == nil {
+		return nil
+	}
+
+	embedAPI := &fieldEmbedAPI{}
+
+	if embed.From != nil {
+		from := make([]string, 0, len(embed.From))
+		for _, f := range embed.From {
+			if !f.IsNull() && !f.IsUnknown() {
+				from = append(from, f.ValueString())
+			}
+		}
+		embedAPI.From = from
+	}
+
+	if embed.ModelConfig != nil {
+		embedAPI.ModelConfig.ModelName = embed.ModelConfig.ModelName.ValueString()
+	}
+
+	return embedAPI
+}
+
+func flattenFieldEmbed(embed *fieldEmbedAPI) *CollectionFieldEmbedModel {
+	if embed == nil {
+		return nil
+	}
+
+	res := &CollectionFieldEmbedModel{}
+
+	if embed.From != nil {
+		from := make([]types.String, 0, len(embed.From))
+		for _, f := range embed.From {
+			from = append(from, types.StringValue(f))
+		}
+		res.From = from
+	}
+
+	res.ModelConfig = &CollectionFieldEmbedModelConfigModel{
+		ModelName: types.StringValue(embed.ModelConfig.ModelName),
+	}
+
+	return res
+}
+
+func fieldsEqual(a, b CollectionResourceFieldModel) bool {
+	return reflect.DeepEqual(a, b)
 }

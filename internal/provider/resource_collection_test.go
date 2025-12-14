@@ -165,6 +165,37 @@ func TestAccCollectionResource_FieldWithAllAttributes(t *testing.T) {
 	})
 }
 
+func TestAccCollectionResource_WithEmbedAndImage(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCollectionResourceConfigWithEmbed("test_collection_embed"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("typesense_collection.test", "name", "test_collection_embed"),
+					resource.TestCheckResourceAttr("typesense_collection.test", "fields.#", "2"),
+					resource.TestCheckTypeSetElemNestedAttrs("typesense_collection.test", "fields.*", map[string]string{
+						"name": "thumbnailImage",
+						"type": "image",
+					}),
+					resource.TestCheckTypeSetElemNestedAttrs("typesense_collection.test", "fields.*", map[string]string{
+						"name":                          "embedding",
+						"type":                          "float[]",
+						"num_dim":                       "512",
+						"embed.%":                       "2",
+						"embed.from.#":                  "1",
+						"embed.from.0":                  "thumbnailImage",
+						"embed.model_config.%":          "1",
+						"embed.model_config.model_name": "ts/clip-vit-b-p32",
+					}),
+					resource.TestCheckResourceAttrSet("typesense_collection.test", "id"),
+				),
+			},
+		},
+	})
+}
+
 func testAccCollectionResourceConfig(name string) string {
 	return fmt.Sprintf(`
 resource "typesense_collection" "test" {
@@ -407,6 +438,33 @@ resource "typesense_collection" "test" {
   }
 
   default_sorting_field = "rating"
+}
+`, name)
+}
+
+func testAccCollectionResourceConfigWithEmbed(name string) string {
+	return fmt.Sprintf(`
+resource "typesense_collection" "test" {
+  name = %[1]q
+
+  fields {
+    name = "thumbnailImage"
+    type = "image"
+  }
+
+  fields {
+    name    = "embedding"
+    type    = "float[]"
+    num_dim = 512
+
+    embed {
+      from = ["thumbnailImage"]
+
+      model_config {
+        model_name = "ts/clip-vit-b-p32"
+      }
+    }
+  }
 }
 `, name)
 }
