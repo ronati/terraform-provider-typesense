@@ -1,3 +1,10 @@
+# [2.4.0](https://github.com/ronati/terraform-provider-typesense/compare/v2.3.0...v2.4.0) (2025-12-15)
+
+
+### Features
+
+* add image embed support to collection resource ([9b89cc1](https://github.com/ronati/terraform-provider-typesense/commit/9b89cc107be7d3cf85a87112621bda27f4d394fa))
+
 # [2.3.0](https://github.com/ronati/terraform-provider-typesense/compare/v2.2.0...v2.3.0) (2025-12-13)
 
 

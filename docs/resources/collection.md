@@ -63,6 +63,7 @@ Required:
 
 Optional:
 
+- `embed` (Block, Optional) (see [below for nested schema](#nestedblock--fields--embed))
 - `facet` (Boolean) Facet field. Defaults to false.
 - `index` (Boolean) Index field. Defaults to true.
 - `infix` (Boolean) Infix field. Defaults to false.
@@ -73,6 +74,21 @@ Optional:
 - `stem` (Boolean) Enable stemming on field. Defaults to false.
 - `stem_dictionary` (String) Custom stemming dictionary. Defaults to empty string.
 - `store` (Boolean) Store field value on disk. Defaults to true.
+
+<a id="nestedblock--fields--embed"></a>
+### Nested Schema for `fields.embed`
+
+Optional:
+
+- `from` (List of String) Fields to generate the embedding from
+- `model_config` (Block, Optional) (see [below for nested schema](#nestedblock--fields--embed--model_config))
+
+<a id="nestedblock--fields--embed--model_config"></a>
+### Nested Schema for `fields.embed.model_config`
+
+Optional:
+
+- `model_name` (String) Model name for embedding generation (e.g. ts/clip-vit-b-p32)
 
 ## Import
 
