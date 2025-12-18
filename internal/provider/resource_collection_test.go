@@ -2,6 +2,7 @@ package provider
 
 import (
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -24,9 +25,10 @@ func TestAccCollectionResource(t *testing.T) {
 			},
 			// ImportState testing
 			{
-				ResourceName:      "typesense_collection.test",
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            "typesense_collection.test",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"deletion_protection"},
 			},
 			// Update and Read testing - add a new field
 			{
@@ -483,9 +485,10 @@ func TestAccCollectionResource_VectorFieldWithNumDim(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      "typesense_collection.test",
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            "typesense_collection.test",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"deletion_protection"},
 			},
 		},
 	})
@@ -558,9 +561,10 @@ func TestAccCollectionResource_FloatArrayWithoutNumDim(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      "typesense_collection.test",
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            "typesense_collection.test",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"deletion_protection"},
 			},
 		},
 	})
@@ -692,4 +696,97 @@ resource "typesense_collection" "test" {
   default_sorting_field = "rating"
 }
 `, name)
+}
+
+func TestAccCollectionResource_DeletionProtection(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			// Create collection without deletion_protection (defaults to false)
+			{
+				Config: testAccCollectionResourceConfigBasic("test_collection_del_protect"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("typesense_collection.test", "name", "test_collection_del_protect"),
+					resource.TestCheckResourceAttr("typesense_collection.test", "deletion_protection", "false"),
+				),
+			},
+			// Update to enable deletion_protection
+			{
+				Config: testAccCollectionResourceConfigDeletionProtection("test_collection_del_protect", true),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("typesense_collection.test", "name", "test_collection_del_protect"),
+					resource.TestCheckResourceAttr("typesense_collection.test", "deletion_protection", "true"),
+				),
+			},
+			// ImportState testing - deletion_protection should be preserved
+			{
+				ResourceName:      "typesense_collection.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+				// deletion_protection is a Terraform-only attribute, not stored in Typesense
+				ImportStateVerifyIgnore: []string{"deletion_protection"},
+			},
+			// Disable deletion_protection to allow test cleanup
+			{
+				Config: testAccCollectionResourceConfigDeletionProtection("test_collection_del_protect", false),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("typesense_collection.test", "name", "test_collection_del_protect"),
+					resource.TestCheckResourceAttr("typesense_collection.test", "deletion_protection", "false"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccCollectionResource_DeletionProtectionPreventsDestroy(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			// Create collection with deletion_protection enabled
+			{
+				Config: testAccCollectionResourceConfigDeletionProtection("test_collection_protected", true),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("typesense_collection.test", "name", "test_collection_protected"),
+					resource.TestCheckResourceAttr("typesense_collection.test", "deletion_protection", "true"),
+				),
+			},
+			// Try to destroy - should fail
+			{
+				Config:      testAccCollectionResourceConfigDeletionProtection("test_collection_protected", true),
+				Destroy:     true,
+				ExpectError: regexp.MustCompile(`Cannot destroy collection`),
+			},
+			// Disable deletion_protection to allow cleanup
+			{
+				Config: testAccCollectionResourceConfigDeletionProtection("test_collection_protected", false),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("typesense_collection.test", "deletion_protection", "false"),
+				),
+			},
+		},
+	})
+}
+
+func testAccCollectionResourceConfigDeletionProtection(name string, protected bool) string {
+	return fmt.Sprintf(`
+resource "typesense_collection" "test" {
+  name                = %[1]q
+  deletion_protection = %[2]t
+
+  fields {
+    name = "title"
+    type = "string"
+  }
+
+  fields {
+    name = "rating"
+    type = "int32"
+    sort = true
+  }
+
+  default_sorting_field = "rating"
+}
+`, name, protected)
 }
