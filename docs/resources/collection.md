@@ -44,6 +44,7 @@ resource "typesense_collection" "my_collection" {
 ### Optional
 
 - `default_sorting_field` (String) Default sorting field
+- `deletion_protection` (Boolean) Whether or not to allow Terraform to destroy the collection. Unless this field is set to false in Terraform state, a terraform destroy or terraform apply that would delete the collection will fail.
 - `enable_nested_fields` (Boolean) Enable nested fields, must be enabled to use object/object[] types
 - `fields` (Block Set) (see [below for nested schema](#nestedblock--fields))
 - `symbols_to_index` (List of String) List of symbols to index

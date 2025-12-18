@@ -1,3 +1,15 @@
+# [2.5.0](https://github.com/ronati/terraform-provider-typesense/compare/v2.4.0...v2.5.0) (2025-12-18)
+
+
+### Bug Fixes
+
+* add ImportStateVerifyIgnore for deletion_protection in existing tests ([2a5b043](https://github.com/ronati/terraform-provider-typesense/commit/2a5b043f54a9d31b5224e851a378431c47e79c77))
+
+
+### Features
+
+* add deletion_protection attribute to collection resource ([323e228](https://github.com/ronati/terraform-provider-typesense/commit/323e228d7ba76584c6e4a7a4c1a8612e87a40213))
+
 # [2.4.0](https://github.com/ronati/terraform-provider-typesense/compare/v2.3.0...v2.4.0) (2025-12-15)
 
 
