@@ -25,9 +25,10 @@ func TestAccCollectionResource(t *testing.T) {
 			},
 			// ImportState testing
 			{
-				ResourceName:      "typesense_collection.test",
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            "typesense_collection.test",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"deletion_protection"},
 			},
 			// Update and Read testing - add a new field
 			{
@@ -484,9 +485,10 @@ func TestAccCollectionResource_VectorFieldWithNumDim(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      "typesense_collection.test",
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            "typesense_collection.test",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"deletion_protection"},
 			},
 		},
 	})
@@ -559,9 +561,10 @@ func TestAccCollectionResource_FloatArrayWithoutNumDim(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      "typesense_collection.test",
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            "typesense_collection.test",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"deletion_protection"},
 			},
 		},
 	})
