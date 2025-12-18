@@ -45,6 +45,7 @@ type CollectionResourceModel struct {
 	EnableNestedFields  types.Bool                     `tfsdk:"enable_nested_fields"`
 	SymbolsToIndex      []types.String                 `tfsdk:"symbols_to_index"`
 	TokenSeparators     []types.String                 `tfsdk:"token_separators"`
+	DeletionProtection  types.Bool                     `tfsdk:"deletion_protection"`
 }
 
 type CollectionResourceFieldModel struct {
@@ -144,6 +145,12 @@ func (r *CollectionResource) Schema(ctx context.Context, req resource.SchemaRequ
 				PlanModifiers: []planmodifier.List{
 					listplanmodifier.RequiresReplace(),
 				},
+			},
+			"deletion_protection": schema.BoolAttribute{
+				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "Whether or not to allow Terraform to destroy the collection. Unless this field is set to false in Terraform state, a terraform destroy or terraform apply that would delete the collection will fail.",
+				Default:             booldefault.StaticBool(false),
 			},
 		},
 		Blocks: map[string]schema.Block{
@@ -510,11 +517,14 @@ func (r *CollectionResource) Update(ctx context.Context, req resource.UpdateRequ
 		tflog.Info(ctx, "###Field will be deleted: "+field.Name.ValueString())
 	}
 
-	_, err := r.client.Collection(state.Id.ValueString()).Update(ctx, schema)
+	// Only call Typesense API if there are actual field changes
+	if len(schema.Fields) > 0 {
+		_, err := r.client.Collection(state.Id.ValueString()).Update(ctx, schema)
 
-	if err != nil {
-		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to update collection, got error: %s", err))
-		return
+		if err != nil {
+			resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to update collection, got error: %s", err))
+			return
+		}
 	}
 
 	// Read back the updated collection to get all computed field attributes
@@ -558,6 +568,15 @@ func (r *CollectionResource) Delete(ctx context.Context, req resource.DeleteRequ
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Check deletion protection
+	if data.DeletionProtection.ValueBool() {
+		resp.Diagnostics.AddError(
+			"Cannot destroy collection",
+			fmt.Sprintf("Collection %q has deletion_protection set to true. Set it to false before destroying.", data.Name.ValueString()),
+		)
 		return
 	}
 
