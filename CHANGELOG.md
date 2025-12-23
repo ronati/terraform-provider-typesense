@@ -1,3 +1,10 @@
+# [2.6.0](https://github.com/ronati/terraform-provider-typesense/compare/v2.5.0...v2.6.0) (2025-12-23)
+
+
+### Features
+
+* allow specifying Typesense API key as resource argument ([c6f4842](https://github.com/ronati/terraform-provider-typesense/commit/c6f4842b9ad11cf2fb64bbb06c09b9d12a2005a0))
+
 # [2.5.0](https://github.com/ronati/terraform-provider-typesense/compare/v2.4.0...v2.5.0) (2025-12-18)
 
 

@@ -46,11 +46,11 @@ output "api_key_id" {
 ### Optional
 
 - `expires_at` (Number) Unix timestamp when the API key expires (optional)
+- `value` (String, Sensitive) The actual API key value. If not provided, Typesense will auto-generate one.
 
 ### Read-Only
 
 - `id` (String) ID identifier
-- `value` (String, Sensitive) The actual API key value (only available after creation)
 - `value_prefix` (String) First few characters of the API key for identification
 
 ## Import
