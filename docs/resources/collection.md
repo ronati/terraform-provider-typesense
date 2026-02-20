@@ -89,7 +89,16 @@ Optional:
 
 Optional:
 
+- `access_token` (String, Sensitive) Access token for authentication
+- `api_key` (String, Sensitive) API key for authentication
+- `client_id` (String) Client ID for OAuth
+- `client_secret` (String, Sensitive) Client secret for OAuth
+- `indexing_prefix` (String) Prefix added to text during indexing
 - `model_name` (String) Model name for embedding generation (e.g. ts/clip-vit-b-p32)
+- `project_id` (String) Project ID for cloud providers
+- `query_prefix` (String) Prefix added to text during querying
+- `refresh_token` (String, Sensitive) Refresh token for OAuth
+- `url` (String) URL for remote embedding model
 
 ## Import
 

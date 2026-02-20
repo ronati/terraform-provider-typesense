@@ -1,3 +1,10 @@
+# [2.7.0](https://github.com/ronati/terraform-provider-typesense/compare/v2.6.0...v2.7.0) (2026-02-20)
+
+
+### Features
+
+* **collections:** add support for all embed model_config fields ([becac1f](https://github.com/ronati/terraform-provider-typesense/commit/becac1f74a7ba0ce750d2277fdb1c4b0ef7a410b))
+
 # [2.6.0](https://github.com/ronati/terraform-provider-typesense/compare/v2.5.0...v2.6.0) (2025-12-23)
 
 
