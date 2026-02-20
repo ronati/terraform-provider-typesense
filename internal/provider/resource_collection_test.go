@@ -188,7 +188,7 @@ func TestAccCollectionResource_WithEmbedAndImage(t *testing.T) {
 						"embed.%":                       "2",
 						"embed.from.#":                  "1",
 						"embed.from.0":                  "thumbnailImage",
-						"embed.model_config.%":          "1",
+						"embed.model_config.%":          "10",
 						"embed.model_config.model_name": "ts/clip-vit-b-p32",
 					}),
 					resource.TestCheckResourceAttrSet("typesense_collection.test", "id"),
@@ -464,6 +464,64 @@ resource "typesense_collection" "test" {
 
       model_config {
         model_name = "ts/clip-vit-b-p32"
+      }
+    }
+  }
+}
+`, name)
+}
+
+func TestAccCollectionResource_WithEmbedModelConfigFields(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCollectionResourceConfigWithEmbedModelConfigFields("test_collection_embed_config"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("typesense_collection.test", "name", "test_collection_embed_config"),
+					resource.TestCheckResourceAttr("typesense_collection.test", "fields.#", "2"),
+					resource.TestCheckTypeSetElemNestedAttrs("typesense_collection.test", "fields.*", map[string]string{
+						"name":                               "embedding",
+						"type":                               "float[]",
+						"num_dim":                            "512",
+						"embed.%":                            "2",
+						"embed.from.#":                       "1",
+						"embed.from.0":                       "thumbnailImage",
+						"embed.model_config.%":               "10",
+						"embed.model_config.model_name":      "ts/clip-vit-b-p32",
+						"embed.model_config.indexing_prefix": "search_document: ",
+						"embed.model_config.query_prefix":    "search_query: ",
+					}),
+					resource.TestCheckResourceAttrSet("typesense_collection.test", "id"),
+				),
+			},
+		},
+	})
+}
+
+func testAccCollectionResourceConfigWithEmbedModelConfigFields(name string) string {
+	return fmt.Sprintf(`
+resource "typesense_collection" "test" {
+  name = %[1]q
+
+  fields {
+    name = "thumbnailImage"
+    type = "image"
+  }
+
+  fields {
+    name    = "embedding"
+    type    = "float[]"
+    num_dim = 512
+
+    embed {
+      from = ["thumbnailImage"]
+
+      model_config {
+        model_name      = "ts/clip-vit-b-p32"
+        indexing_prefix  = "search_document: "
+        query_prefix     = "search_query: "
       }
     }
   }

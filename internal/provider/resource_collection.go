@@ -70,7 +70,16 @@ type CollectionFieldEmbedModel struct {
 }
 
 type CollectionFieldEmbedModelConfigModel struct {
-	ModelName types.String `tfsdk:"model_name"`
+	ModelName      types.String `tfsdk:"model_name"`
+	Url            types.String `tfsdk:"url"`
+	AccessToken    types.String `tfsdk:"access_token"`
+	ApiKey         types.String `tfsdk:"api_key"`
+	ClientId       types.String `tfsdk:"client_id"`
+	ClientSecret   types.String `tfsdk:"client_secret"`
+	IndexingPrefix types.String `tfsdk:"indexing_prefix"`
+	ProjectId      types.String `tfsdk:"project_id"`
+	QueryPrefix    types.String `tfsdk:"query_prefix"`
+	RefreshToken   types.String `tfsdk:"refresh_token"`
 }
 
 // fieldEmbedAPI mirrors the inline embed struct on api.Field.
@@ -250,6 +259,55 @@ func (r *CollectionResource) Schema(ctx context.Context, req resource.SchemaRequ
 										"model_name": schema.StringAttribute{
 											Optional:    true,
 											Description: "Model name for embedding generation (e.g. ts/clip-vit-b-p32)",
+										},
+										"url": schema.StringAttribute{
+											Optional:    true,
+											Computed:    true,
+											Description: "URL for remote embedding model",
+										},
+										"access_token": schema.StringAttribute{
+											Optional:    true,
+											Computed:    true,
+											Sensitive:   true,
+											Description: "Access token for authentication",
+										},
+										"api_key": schema.StringAttribute{
+											Optional:    true,
+											Computed:    true,
+											Sensitive:   true,
+											Description: "API key for authentication",
+										},
+										"client_id": schema.StringAttribute{
+											Optional:    true,
+											Computed:    true,
+											Description: "Client ID for OAuth",
+										},
+										"client_secret": schema.StringAttribute{
+											Optional:    true,
+											Computed:    true,
+											Sensitive:   true,
+											Description: "Client secret for OAuth",
+										},
+										"indexing_prefix": schema.StringAttribute{
+											Optional:    true,
+											Computed:    true,
+											Description: "Prefix added to text during indexing",
+										},
+										"project_id": schema.StringAttribute{
+											Optional:    true,
+											Computed:    true,
+											Description: "Project ID for cloud providers",
+										},
+										"query_prefix": schema.StringAttribute{
+											Optional:    true,
+											Computed:    true,
+											Description: "Prefix added to text during querying",
+										},
+										"refresh_token": schema.StringAttribute{
+											Optional:    true,
+											Computed:    true,
+											Sensitive:   true,
+											Description: "Refresh token for OAuth",
 										},
 									},
 								},
@@ -701,6 +759,15 @@ func fieldEmbedModelToAPI(embed *CollectionFieldEmbedModel) *fieldEmbedAPI {
 
 	if embed.ModelConfig != nil {
 		embedAPI.ModelConfig.ModelName = embed.ModelConfig.ModelName.ValueString()
+		embedAPI.ModelConfig.Url = embed.ModelConfig.Url.ValueStringPointer()
+		embedAPI.ModelConfig.AccessToken = embed.ModelConfig.AccessToken.ValueStringPointer()
+		embedAPI.ModelConfig.ApiKey = embed.ModelConfig.ApiKey.ValueStringPointer()
+		embedAPI.ModelConfig.ClientId = embed.ModelConfig.ClientId.ValueStringPointer()
+		embedAPI.ModelConfig.ClientSecret = embed.ModelConfig.ClientSecret.ValueStringPointer()
+		embedAPI.ModelConfig.IndexingPrefix = embed.ModelConfig.IndexingPrefix.ValueStringPointer()
+		embedAPI.ModelConfig.ProjectId = embed.ModelConfig.ProjectId.ValueStringPointer()
+		embedAPI.ModelConfig.QueryPrefix = embed.ModelConfig.QueryPrefix.ValueStringPointer()
+		embedAPI.ModelConfig.RefreshToken = embed.ModelConfig.RefreshToken.ValueStringPointer()
 	}
 
 	return embedAPI
@@ -722,7 +789,16 @@ func flattenFieldEmbed(embed *fieldEmbedAPI) *CollectionFieldEmbedModel {
 	}
 
 	res.ModelConfig = &CollectionFieldEmbedModelConfigModel{
-		ModelName: types.StringValue(embed.ModelConfig.ModelName),
+		ModelName:      types.StringValue(embed.ModelConfig.ModelName),
+		Url:            types.StringPointerValue(embed.ModelConfig.Url),
+		AccessToken:    types.StringPointerValue(embed.ModelConfig.AccessToken),
+		ApiKey:         types.StringPointerValue(embed.ModelConfig.ApiKey),
+		ClientId:       types.StringPointerValue(embed.ModelConfig.ClientId),
+		ClientSecret:   types.StringPointerValue(embed.ModelConfig.ClientSecret),
+		IndexingPrefix: types.StringPointerValue(embed.ModelConfig.IndexingPrefix),
+		ProjectId:      types.StringPointerValue(embed.ModelConfig.ProjectId),
+		QueryPrefix:    types.StringPointerValue(embed.ModelConfig.QueryPrefix),
+		RefreshToken:   types.StringPointerValue(embed.ModelConfig.RefreshToken),
 	}
 
 	return res
